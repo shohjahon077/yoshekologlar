@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YMT Hub | Shohjahon Mahkamov</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');
+        
+        :root { --emerald: #10b981; --dark: #020617; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--dark); color: #f1f5f9; overflow: hidden; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Kirish Animatsiyasi */
+        #loader {
+            position: fixed; inset: 0; background: var(--dark); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .boot-text { color: var(--emerald); font-family: 'Orbitron'; letter-spacing: 5px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .ai-card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(25px); border: 1px solid rgba(16, 185, 129, 0.2); }
+        
+        /* Jonli To'lqin */
+        .visualizer { display: flex; align-items: center; gap: 4px; height: 30px; }
+        .bar { width: 4px; background: var(--emerald); border-radius: 10px; transition: height 0.1s; }
+
+        .message-in { animation: slideUp 0.5s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        pre { background: #0f172a !important; padding: 15px; border-radius: 12px; border: 1px solid #1e293b; margin: 10px 0; overflow-x: auto; }
+        img.gen-image { border-radius: 15px; border: 2px solid var(--emerald); margin-top: 10px; width: 100%; max-width: 512px; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="text-6xl mb-4 text-emerald-500"><i class="fas fa-microchip animate-spin"></i></div>
+        <h1 class="boot-text text-2xl font-bold">YMT HUB LOADING...</h1>
+        <p class="mt-4 text-gray-500 text-xs">Created by Shohjahon Mahkamov</p>
+    </div>
+
+    <div class="h-screen w-screen flex flex-col p-4 sm:p-6 lg:p-10 opacity-0 transition-opacity duration-1000" id="main-ui">
+        
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <div class="p-3 ai-card rounded-2xl">
+                    <h1 class="font-orbitron text-xl font-bold text-emerald-500 tracking-tighter">YMT HUB</h1>
+                </div>
+                <div class="hidden md:block">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Authority</p>
+                    <p class="text-xs text-emerald-400">Shohjahon Mahkamov</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div id="visualizer" class="visualizer opacity-0">
+                    <div class="bar h-2"></div><div class="bar h-5"></div><div class="bar h-8"></div>
+                    <div class="bar h-5"></div><div class="bar h-2"></div>
+                </div>
+                <button onclick="startVoice()" id="micBtn" class="w-14 h-14 rounded-full ai-card flex items-center justify-center text-emerald-500 hover:scale-110 transition-transform">
+                    <i class="fas fa-microphone-lines text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="chatWindow" class="flex-1 overflow-y-auto mb-6 pr-4 space-y-6">
+            <div class="flex justify-start">
+                <div class="ai-card p-6 rounded-3xl rounded-tl-none max-w-2xl">
+                    <h3 class="font-orbitron text-xs text-emerald-500 mb-2">System Notification</h3>
+                    <p class="text-sm leading-relaxed text-gray-300">
+                        Assalomu alaykum. Men <b>YMT Hub</b> intellektual tizimiman. Shohjahon Mahkamov tomonidan dasturlanganman. 
+                        Men nafaqat savollarga javob bera olaman, balki rasm chizish (<i>"rasm chiz"</i> deb ayting) va jonli muloqot qilish imkoniyatiga egaman.
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="max-w-5xl mx-auto w-full">
+            <div class="ai-card p-2 rounded-[30px] flex items-center gap-4 shadow-2xl">
+                <input type="text" id="userInput" class="flex-1 bg-transparent border-none outline-none px-6 py-4 text-sm text-white" placeholder="Buyruqni kiriting yoki rasm so'rang...">
+                <button onclick="processRequest()" class="bg-emerald-600 hover:bg-emerald-500 text-white w-14 h-14 rounded-[24px] transition-all flex items-center justify-center shadow-lg">
+                    <i class="fas fa-bolt"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // API KEY va Sozlamalar
+        const GROQ_KEY = "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";
+        const history = [{ role: "system", content: "Isming YMT Hub. Yaratuvching Shohjahon Mahkamov. Sen juda aqlli, professional va o'zbek tilida mukammal gapirasan. Agar foydalanuvchi rasm chizishni so'rasa, faqat 'DRAW_MODE: [tasvir tavsifi]' formatida javob ber." }];
+
+        // Loader script
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('main-ui').classList.remove('opacity-0');
+                }, 1000);
+            }, 2500);
+        };
+
+        async function processRequest() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text || !GROQ_KEY) return;
+
+            appendMessage('user', text);
+            input.value = '';
+
+            // AI Muloqot
+            history.push({ role: "user", content: text });
+            
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: history })
+                });
+                const data = await response.json();
+                const aiText = data.choices[0].message.content;
+
+                if (aiText.includes("DRAW_MODE:")) {
+                    const prompt = aiText.split("DRAW_MODE:")[1].trim();
+                    generateImage(prompt);
+                } else {
+                    appendMessage('ai', aiText);
+                    history.push({ role: "assistant", content: aiText });
+                    improvedSpeak(aiText);
+                }
+            } catch (e) {
+                appendMessage('ai', "Tizimda xatolik yuz berdi.");
+            }
+        }
+
+        function appendMessage(role, text) {
+            const win = document.getElementById('chatWindow');
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} message-in`;
+            
+            div.innerHTML = role === 'user' 
+                ? `<div class="bg-emerald-600 px-6 py-3 rounded-2xl rounded-tr-none text-sm max-w-[80%]">${text}</div>`
+                : `<div class="ai-card p-6 rounded-3xl rounded-tl-none text-sm max-w-[90%] text-gray-300 leading-relaxed">${marked.parse(text)}</div>`;
+            
+            win.appendChild(div);
+            win.scrollTop = win.scrollHeight;
+        }
+
+        // RASM CHIZISH FUNKSIYASI (Pollinations API - Bepul va Tezkor)
+        function generateImage(prompt) {
+            const win = document.getElementById('chatWindow');
+            const imgUrl = `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=42&model=flux`;
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-start message-in";
+            div.innerHTML = `
+                <div class="ai-card p-4 rounded-3xl rounded-tl-none max-w-lg">
+                    <p class="text-xs text-emerald-500 mb-2 italic">YMT Hub tomonidan chizilgan tasvir:</p>
+                    <img src="${imgUrl}" class="gen-image" alt="AI Generated">
+                    <a href="${imgUrl}" download class="mt-2 block text-center text-[10px] text-gray-500 hover:text-emerald-500">Rasmni yuklab olish</a>
+                </div>`;
+            win.appendChild(div);
+            win.scrollTop = win.scrollHeight;
+            improvedSpeak("Siz so'ragan tasvir tayyor bo'ldi.");
+        }
+
+        // MUHAMMALLASHTIRILGAN OVOZ (Aksentsizroq)
+        function improvedSpeak(text) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'tr-TR'; // O'zbekcha aksent uchun turkcha motor yaxshiroq ishlaydi
+            utter.rate = 1.0;
+            utter.pitch = 0.9; // Jiddiyroq va tabiiyroq ovoz
+
+            // Ovoz to'lqinini yoqish
+            const vis = document.getElementById('visualizer');
+            vis.style.opacity = '1';
+            
+            const bars = document.querySelectorAll('.bar');
+            const interval = setInterval(() => {
+                bars.forEach(b => b.style.height = Math.random() * 30 + 'px');
+            }, 100);
+
+            utter.onend = () => {
+                clearInterval(interval);
+                vis.style.opacity = '0';
+            };
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        // VOICE RECOGNITION (Jonli suhbat)
+        function startVoice() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return alert("Brauzerda ovoz qo'llab-quvvatlanmaydi.");
+            
+            const rec = new Speech();
+            rec.lang = 'uz-UZ';
+            rec.start();
+            
+            document.getElementById('micBtn').classList.add('animate-pulse', 'bg-emerald-500', 'text-white');
+            
+            rec.onresult = (e) => {
+                document.getElementById('userInput').value = e.results[0][0].transcript;
+                processRequest();
+            };
+            rec.onend = () => {
+                document.getElementById('micBtn').classList.remove('animate-pulse', 'bg-emerald-500', 'text-white');
+            };
+        }
+    </script>
+</body>
+</html>
