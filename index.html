@@ -3,1576 +3,1369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOSH EKOLOGLAR | Sayyorani Qayta Dasturlash</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@200;400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>EcoFuture - Ekologik Yechimlar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         :root {
-            --neon: #39ff14;
-            --dark: #000402;
-            --glass: rgba(57, 255, 20, 0.05);
-            --border: rgba(57, 255, 20, 0.3);
-            --text-color: #e6f7ff;
-            --accent: #00f3ff;
-            --warning: #ff1493;
+            --primary-green: #2ecc71;
+            --secondary-green: #27ae60;
+            --dark-green: #1e8449;
+            --light-green: #a8e6cf;
+            --accent-yellow: #f9ca24;
+            --accent-blue: #3498db;
+            --dark-blue: #2980b9;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --darker-gray: #343a40;
+            --white: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 6px 15px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 20px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: var(--dark);
-            color: var(--text-color);
-            font-family: 'Exo 2', sans-serif;
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f9f5;
             overflow-x: hidden;
-            scroll-behavior: smooth;
-            background-image: 
-                radial-gradient(var(--neon) 1px, transparent 1px),
-                radial-gradient(var(--neon) 1px, transparent 1px);
-            background-size: 40px 40px;
-            background-position: 0 0, 20px 20px;
         }
 
-        /* Language Selector */
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2000;
-            background: rgba(0, 5, 2, 0.85);
-            border: 1px solid var(--neon);
-            border-radius: 50px;
-            padding: 5px;
-            display: flex;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            color: var(--darker-gray);
         }
-        
-        .lang-btn {
-            background: none;
-            border: none;
-            color: #888;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--dark-green);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 4px;
+            background: var(--primary-green);
+            border-radius: 2px;
+        }
+
+        .section-description {
+            text-align: center;
+            max-width: 800px;
+            margin: 25px auto 50px;
+            font-size: 1.15rem;
+            color: var(--dark-gray);
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-        }
-        
-        .lang-btn.active, .lang-btn:hover {
-            background: rgba(57, 255, 20, 0.15);
-            color: var(--neon);
-            transform: scale(1.1);
-            box-shadow: 0 0 10px var(--neon);
-        }
-        
-        .lang-btn.active {
-            background: rgba(57, 255, 20, 0.25);
-            border: 1px solid var(--neon);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            text-decoration: none;
         }
 
-        /* 3D Kiber Fon Effekti */
-        .cyber-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            overflow: hidden; z-index: -2;
-            background: linear-gradient(135deg, #0a1f0c, #000402);
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
         }
 
-        .cyber-grid-dots {
-            position: absolute; width: 100%; height: 100%;
-            background-image: radial-gradient(var(--neon) 1px, transparent 1px);
-            background-size: 30px 30px;
-            opacity: 0.08;
-            animation: gridFlow 60s linear infinite;
+        .logo span {
+            color: var(--darker-gray);
         }
 
-        @keyframes gridFlow {
-            from { transform: translate(0, 0); }
-            to { transform: translate(300px, 300px); }
+        .logo-accent {
+            color: var(--accent-yellow);
         }
 
-        .cyber-lines {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(0deg, transparent 50%, rgba(57,255,20,0.1) 50%, rgba(57,255,20,0.1) 51%, transparent 51%),
-                linear-gradient(90deg, transparent 50%, rgba(57,255,20,0.1) 50%, rgba(57,255,20,0.1) 51%, transparent 51%);
-            background-size: 5px 5px;
-            animation: linesZoom 30s linear infinite;
-            opacity: 0.1;
-        }
-
-        @keyframes linesZoom {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(3) rotate(360deg); }
-        }
-
-        /* Navigatsiya */
-        nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(25px);
-            border-top: 2px solid var(--neon);
-            display: flex; justify-content: space-around;
-            padding: 12px 0; z-index: 1000;
+        /* Navigation Styles */
+        .nav-links {
+            display: flex;
+            list-style: none;
         }
 
         .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            text-decoration: none; color: #888; transition: 0.4s;
-        }
-        .nav-item i { font-size: 1.4rem; margin-bottom: 5px; }
-        .nav-item span { font-size: 0.65rem; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
-
-        .nav-item.active, .nav-item:hover { color: var(--neon); text-shadow: 0 0 15px var(--neon); transform: translateY(-5px); }
-
-        /* Hero Section */
-        .hero {
-            height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-            padding: 0 20px; position: relative;
-        }
-
-        .hero h1 {
-            font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 12vw, 5.5rem);
-            color: var(--text-color); line-height: 1.1; margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
-            animation: glitchText 3s infinite alternate;
-        }
-
-        @keyframes glitchText {
-            0% { transform: translate(0, 0); text-shadow: 2px 2px #f0f, -2px -2px #0ff; }
-            25% { transform: translate(-2px, 2px); text-shadow: -2px -2px #f0f, 2px 2px #0ff; }
-            50% { transform: translate(2px, -2px); text-shadow: 2px -2px #f0f, -2px 2px #0ff; }
-            75% { transform: translate(-2px, -2px); text-shadow: -2px 2px #f0f, 2px -2px #0ff; }
-            100% { transform: translate(0, 0); text-shadow: 2px 2px #f0f, -2px -2px #0ff; }
-        }
-
-        /* Katta bo'limlar uchun animatsiya */
-        .section-wrapper {
-            padding: 120px 10%; position: relative; z-index: 1;
-            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8));
-        }
-        .section-wrapper:nth-child(even) { background: linear-gradient(rgba(10,20,12,0.8), rgba(0,0,0,0.8)); }
-
-        .section-title {
-            font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 5vw, 3rem);
-            color: var(--neon); text-align: center; margin-bottom: 60px;
-            position: relative;
-        }
-        .section-title::after {
-            content: ''; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 3px; background: var(--neon); box-shadow: 0 0 15px var(--neon);
-        }
-
-        /* Info Kartalar */
-        .info-cards-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px; margin-top: 50px;
-        }
-
-        .info-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 30px; border-radius: 10px;
-            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            position: relative; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .info-card::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; background: linear-gradient(135deg, transparent 40%, var(--neon) 100%);
-            opacity: 0.05; transform: scaleX(0); transform-origin: left; transition: 0.5s;
-        }
-        .info-card:hover::before { transform: scaleX(1); }
-        .info-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 15px 30px rgba(57, 255, 20, 0.2); }
-        
-        .info-card h3 { font-family: 'Orbitron', sans-serif; color: var(--neon); margin-bottom: 15px; }
-
-        /* Global Status */
-        .global-status {
-            text-align: center; padding: 100px 10%; background: linear-gradient(rgba(0,0,0,0.9), var(--dark));
-        }
-        .status-bar {
-            width: 80%; max-width: 600px; height: 20px; background: #333;
-            border-radius: 10px; margin: 30px auto; overflow: hidden;
-            border: 1px solid var(--neon);
-            position: relative;
-        }
-        .status-fill {
-            height: 100%; width: 0%; background: var(--neon);
-            animation: fillStatus 3s ease-out forwards;
-            position: relative;
-        }
-        .status-fill::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 4px;
-            height: 24px;
-            background: var(--neon);
-            box-shadow: 0 0 10px var(--neon);
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes fillStatus {
-            from { width: 0%; }
-            to { width: 70%; }
-        }
-        
-        /* Chatbot tugmasi */
-        .chatbot-btn {
-            position: fixed; bottom: 80px; right: 20px;
-            background: var(--neon); color: var(--dark);
-            width: 60px; height: 60px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.8rem; box-shadow: 0 0 20px var(--neon);
-            cursor: pointer; z-index: 1100; transition: 0.3s;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .chatbot-btn:hover { transform: scale(1.1) translateY(-5px); box-shadow: 0 0 30px var(--neon); }
-
-        /* Chatbot oynasi */
-        .chatbot-window {
-            position: fixed; bottom: 150px; right: 20px;
-            width: 380px; height: 520px;
-            background: rgba(5, 15, 10, 0.92);
-            border: 2px solid var(--neon);
-            border-radius: 20px;
-            box-shadow: 0 0 40px rgba(57, 255, 20, 0.6);
-            z-index: 1200; 
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            transform: scale(0.95);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        .chatbot-window.active {
+            margin-left: 30px;
+            text-decoration: none;
+            color: var(--darker-gray);
+            font-weight: 600;
+            font-size: 1.05rem;
             display: flex;
-            transform: scale(1);
-            opacity: 1;
-        }
-        
-        .chatbot-header {
-            background: linear-gradient(90deg, rgba(57,255,20,0.15), rgba(0,30,15,0.9));
-            color: var(--neon); 
-            padding: 15px 20px;
-            font-family: 'Orbitron', sans-serif; 
-            display: flex; 
-            justify-content: space-between; 
+            flex-direction: column;
             align-items: center;
-            font-size: 1.1rem;
-            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
             position: relative;
+            padding: 5px 0;
         }
-        
-        .chatbot-header::after {
+
+        .nav-item i {
+            font-size: 1.3rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary-green);
+        }
+
+        .nav-item::after {
             content: '';
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--neon);
-            opacity: 0.7;
-            box-shadow: 0 0 10px var(--neon);
-        }
-        
-        .chatbot-header span {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .chatbot-status {
-            width: 10px;
-            height: 10px;
-            background: #ff1493;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            box-shadow: 0 0 8px #ff1493;
-            animation: pulseStatus 2s infinite;
-        }
-        
-        .chatbot-status.online {
-            background: var(--neon);
-            box-shadow: 0 0 8px var(--neon);
-        }
-        
-        @keyframes pulseStatus {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        .chatbot-close { 
-            cursor: pointer; 
-            font-size: 1.4rem; 
-            transition: transform 0.3s;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(0, 30, 15, 0.7);
-            border: 1px solid var(--border);
-        }
-        
-        .chatbot-close:hover {
-            transform: rotate(90deg);
-            background: rgba(57, 255, 20, 0.1);
-        }
-        
-        .chatbot-messages { 
-            flex-grow: 1; 
-            padding: 20px; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px;
-            background: rgba(0, 10, 5, 0.7);
-        }
-        
-        .chatbot-input {
-            display: flex; 
-            padding: 15px; 
-            border-top: 1px solid var(--border);
-            background: rgba(0, 15, 8, 0.8);
-        }
-        
-        .chatbot-input input {
-            flex-grow: 1; 
-            background: rgba(10, 30, 20, 0.7);
-            border: 1px solid var(--border);
-            color: white; 
-            padding: 12px 15px;
-            border-radius: 25px;
-            font-family: 'Exo 2', sans-serif;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.3s;
-        }
-        
-        .chatbot-input input:focus {
-            border-color: var(--neon);
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
-        }
-        
-        .chatbot-input button {
-            background: linear-gradient(45deg, var(--neon), #00cc00);
-            border: none; 
-            color: var(--dark); 
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer; 
-            margin-left: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.5);
-        }
-        
-        .chatbot-input button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(57, 255, 20, 0.8);
-        }
-        
-        .message {
-            max-width: 85%;
-            padding: 14px 18px;
-            border-radius: 18px;
-            line-height: 1.5;
-            animation: fadeIn 0.4s ease-out;
-            position: relative;
-            font-family: 'Exo 2', sans-serif;
-            font-size: 0.95rem;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .message.bot {
-            align-self: flex-start;
-            background: rgba(20, 40, 30, 0.85);
-            border: 1px solid var(--border);
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .message.bot::before {
-            content: '';
-            position: absolute;
-            left: -7px;
-            top: 10px;
-            width: 12px;
-            height: 12px;
-            background: rgba(20, 40, 30, 0.85);
-            border-top: 1px solid var(--border);
-            border-left: 1px solid var(--border);
-            transform: rotate(45deg);
-        }
-        
-        .message.user {
-            align-self: flex-end;
-            background: rgba(0, 50, 30, 0.9);
-            border: 1px solid var(--neon);
-            border-bottom-right-radius: 5px;
-            box-shadow: 0 3px 15px rgba(0, 30, 15, 0.5);
-        }
-        
-        .message.user::before {
-            content: '';
-            position: absolute;
-            right: -7px;
-            top: 10px;
-            width: 12px;
-            height: 12px;
-            background: rgba(0, 50, 30, 0.9);
-            border-top: 1px solid var(--neon);
-            border-right: 1px solid var(--neon);
-            transform: rotate(45deg);
-        }
-        
-        .message-options {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .message-option {
-            background: rgba(30, 60, 40, 0.9);
-            border: 1px solid var(--border);
-            color: var(--neon);
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Orbitron', sans-serif;
-        }
-        
-        .message-option:hover {
-            background: rgba(57, 255, 20, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .typing-indicator {
-            display: inline-block;
-            margin-left: 5px;
-        }
-        
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--neon);
-            border-radius: 50%;
-            margin: 0 1px;
-            opacity: 0.6;
-            animation: typing 1.4s infinite both;
-        }
-        
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); opacity: 0.6; }
-            50% { transform: translateY(-5px); opacity: 1; }
-        }
-        
-        .language-badge {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background: rgba(0, 30, 15, 0.8);
-            border: 1px solid var(--neon);
-            color: var(--neon);
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-family: 'Orbitron', sans-serif;
-            z-index: 10;
+            width: 0;
+            height: 3px;
+            background: var(--primary-green);
+            transition: var(--transition);
+            border-radius: 2px;
         }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .hero h1 { letter-spacing: 3px; font-size: clamp(2rem, 8vw, 4rem); }
-            .section-wrapper { padding: 80px 5%; }
-            .section-title { font-size: 1.8rem; }
-            .info-cards-grid { grid-template-columns: 1fr; }
-            .chatbot-window { 
-                width: 95%; 
-                height: 75vh; 
-                bottom: 120px; 
-                right: 2.5%; 
-                left: 2.5%; 
-                margin: auto; 
-                border-radius: 25px;
-            }
-            .language-selector {
-                top: 15px;
-                right: 15px;
-                border-radius: 20px;
-            }
-            .lang-btn {
-                width: 35px;
-                height: 35px;
-                font-size: 0.7rem;
-            }
+        .nav-item:hover::after, .nav-item.active::after {
+            width: 100%;
         }
-        
-        /* Chinese and Korean font support */
-        .zh, .ko {
-            font-family: 'Noto Sans SC', 'Noto Sans KR', 'Exo 2', sans-serif;
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--darker-gray);
+            cursor: pointer;
         }
-        
-        .ko {
-            letter-spacing: -0.5px;
-        }
-        
-        .zh {
-            letter-spacing: 1px;
-        }
-        
-        /* Enhanced animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        [data-aos] {
-            animation: fadeInUp 0.8s ease-out forwards;
-            opacity: 0;
-        }
-        
-        [data-aos="fade-up"] { animation-delay: 0.2s; }
-        [data-aos="fade-up"][data-aos-delay="100"] { animation-delay: 0.3s; }
-        [data-aos="fade-up"][data-aos-delay="200"] { animation-delay: 0.4s; }
-        [data-aos="fade-up"][data-aos-delay="300"] { animation-delay: 0.5s; }
-        [data-aos="fade-up"][data-aos-delay="400"] { animation-delay: 0.6s; }
-        [data-aos="fade-up"][data-aos-delay="500"] { animation-delay: 0.7s; }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        .eco-pulse {
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0, 30, 0, 0.7), rgba(0, 50, 0, 0.8)), url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--white);
             position: relative;
-            display: inline-block;
         }
-        
-        .eco-pulse::after {
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-top: 80px;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: var(--white);
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary-green);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            border: 2px solid var(--primary-green);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-green);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border-color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--dark-green);
+        }
+
+        .btn-accent {
+            background: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            color: var(--darker-gray);
+        }
+
+        .btn-accent:hover {
+            background: transparent;
+            color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+        }
+
+        /* Section Wrapper */
+        .section-wrapper {
+            background: var(--white);
+            padding: 80px 0;
+        }
+
+        .section-wrapper:nth-child(even) {
+            background: var(--light-gray);
+        }
+
+        /* About Section */
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            margin-top: 40px;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-text h2 {
+            font-size: 2.3rem;
+            margin-bottom: 25px;
+            color: var(--dark-green);
+        }
+
+        .about-text p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .about-image {
+            flex: 1;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-hover);
+            height: 450px;
+            background: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80') center/cover no-repeat;
+        }
+
+        /* Mission Section */
+        .mission-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .mission-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .mission-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .mission-card i {
+            font-size: 3.5rem;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+
+        .mission-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark-green);
+        }
+
+        /* Staff Section */
+        .info-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .info-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+            padding: 25px 20px;
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .info-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--light-green);
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .info-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .info-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            color: var(--dark-green);
+        }
+
+        .info-card p {
+            color: var(--dark-blue);
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        /* Projects Section */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .project-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .project-img {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .project-content {
+            padding: 25px;
+        }
+
+        .project-content h3 {
+            font-size: 1.7rem;
+            margin-bottom: 10px;
+            color: var(--dark-green);
+        }
+
+        .project-content p {
+            margin-bottom: 15px;
+            color: var(--dark-gray);
+        }
+
+        /* Contact Section */
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 50px;
+            margin-top: 40px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .contact-item i {
+            font-size: 1.8rem;
+            color: var(--primary-green);
+            min-width: 30px;
+            margin-top: 5px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--darker-gray);
+        }
+
+        .form-control {
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius-sm);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-gray);
+            color: var(--white);
+            padding: 60px 0 30px;
+        }
+
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .footer-col h3 {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 10px;
+            color: var(--white);
+        }
+
+        .footer-col h3::after {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            background: inherit;
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            opacity: 0.7;
-            z-index: -1;
-            animation: pulseRing 2s infinite;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-green);
         }
-        
-        @keyframes pulseRing {
-            0% {
-                transform: translate(-50%, -50%) scale(0.8);
-                opacity: 0.7;
+
+        .footer-col p {
+            margin: 15px 0;
+            color: #bbb;
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #bbb;
+            text-decoration: none;
+            transition: var(--transition);
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-green);
+            transform: translateX(5px);
+        }
+
+        .footer-links i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid #444;
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        /* Chatbot Button */
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: var(--shadow-hover);
+            transition: var(--transition);
+            z-index: 2000;
+            text-decoration: none;
+            border: 3px solid white;
+        }
+
+        .chatbot-btn:hover {
+            background: var(--dark-green);
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .chatbot-btn i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        /* Language Selector */
+        .language-selector {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--white);
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            padding: 5px;
+            display: flex;
+            box-shadow: var(--shadow);
+        }
+
+        .lang-btn {
+            background: none;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            color: var(--dark-gray);
+        }
+
+        .lang-btn.active, .lang-btn:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3.8rem;
             }
-            70% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 0.3;
+            
+            .about-content {
+                flex-direction: column;
             }
-            100% {
-                transform: translate(-50%, -50%) scale(1.4);
-                opacity: 0;
+            
+            .about-image {
+                width: 100%;
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 80px;
+                right: -100%;
+                width: 80%;
+                height: calc(100vh - 80px);
+                background: var(--white);
+                flex-direction: column;
+                align-items: center;
+                padding-top: 40px;
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+                transition: var(--transition);
+                z-index: 999;
+            }
+            
+            .nav-links.active {
+                right: 0;
+            }
+            
+            .nav-item {
+                margin: 15px 0;
+                font-size: 1.3rem;
+            }
+            
+            .nav-item i {
+                font-size: 1.8rem;
+            }
+            
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .hero p {
+                font-size: 1.3rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            section {
+                padding: 60px 0;
+            }
+            
+            .section-wrapper {
+                padding: 60px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.15rem;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .section-description {
+                font-size: 1rem;
+            }
+            
+            .chatbot-btn {
+                width: 55px;
+                height: 55px;
+                bottom: 20px;
+                right: 20px;
             }
         }
     </style>
 </head>
 <body>
-
-    <div class="language-selector">
-        <button class="lang-btn active" data-lang="uz">UZ</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="ru">RU</button>
-        <button class="lang-btn" data-lang="ko">KO</button>
-        <button class="lang-btn" data-lang="zh">中文</button>
-    </div>
-
-    <div class="cyber-bg">
-        <div class="cyber-grid-dots"></div>
-        <div class="cyber-lines"></div>
-    </div>
-
-    <header class="hero">
-        <div data-aos="fade-up" data-aos-duration="1500">
-            <p style="letter-spacing: 8px; opacity: 0.6; margin-bottom: 10px; color: var(--neon);" class="i18n" data-key="system_message">TIZIMGA KIRSATISH...</p>
-            <h1 class="i18n" data-key="hero_title">YOSH EKOLOGLAR</h1>
-            <p style="max-width: 700px; font-weight: 200; margin: 30px auto; font-size: clamp(0.9rem, 2vw, 1.2rem);" class="i18n" data-key="hero_subtitle">
-                Sayyora sizning harakatingizni kutmoqda. Biz global ekologik uyg'onishning bir qismimiz. 
-                Kelajak bizning qo'limizda.
-            </p>
-            <a href="#mission" style="margin-top: 40px; color: var(--neon); text-decoration: none; font-family: 'Orbitron'; font-size: 0.9rem; display: inline-block; padding: 10px 25px; border: 1px solid var(--neon); border-radius: 30px; margin-top: 20px; transition: all 0.3s;" class="i18n" data-key="load_data">
-                [ MA'LUMOTLARNI YUKLASH ]
+    <!-- Header with Navigation -->
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-leaf"></i>
+                yosh<span class="logo-accent">ekologlar</span>
             </a>
+            <button class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <a href="#hero" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span class="i18n" data-key="nav_home">Bosh sahifa</span>
+                </a>
+                <a href="#about" class="nav-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="i18n" data-key="nav_about">Biz haqimizda</span>
+                </a>
+                <a href="#mission" class="nav-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span class="i18n" data-key="nav_mission">Missiya</span>
+                </a>
+                <a href="#staff" class="nav-item">
+                    <i class="fas fa-users-cog"></i>
+                    <span class="i18n" data-key="nav_staff">Xodimlar</span>
+                </a>
+                <a href="#projects" class="nav-item">
+                    <i class="fas fa-project-diagram"></i>
+                    <span class="i18n" data-key="nav_projects">Loyihalar</span>
+                </a>
+                <a href="#contact" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span class="i18n" data-key="nav_contact">Aloqa</span>
+                </a>
+                <div class="language-selector">
+                    <button class="lang-btn active" data-lang="uz">UZ</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+            </ul>
         </div>
     </header>
 
-    <section id="mission" class="section-wrapper">
-        <h2 class="section-title i18n" data-key="mission_title">BIZNING ULKAN MISSIYAMIZ</h2>
-        <p style="text-align: center; max-width: 900px; margin: 0 auto 60px; font-size: 1.1rem; opacity: 0.8;" class="i18n" data-key="mission_description">
-            Biz shunchaki o'rganmaymiz, biz <span style="color: var(--neon); font-weight: bold;">qayta yaratamiz</span>. Har bir yosh ekolog bu — sayyoraning yangi umididir.
-        </p>
-
-        <div class="info-cards-grid">
-            <div class="info-card" data-aos="zoom-in" data-aos-delay="100">
-                <h3 class="i18n" data-key="card1_title">VIRTUAL EKOTIZIM</h3>
-                <p class="i18n" data-key="card1_text">Bizning platforma tabiatni tushunish va uni qutqarish uchun virtual laboratoriyadir. Siz bu yerda tajriba o'tkazasiz, o'rganasiz va kodingizni yozasiz.</p>
-            </div>
-            <div class="info-card" data-aos="zoom-in" data-aos-delay="200">
-                <h3 class="i18n" data-key="card2_title">INSONIYATNING KELAJAGI</h3>
-                <p class="i18n" data-key="card2_text">O'rmonlar yonmoqda, okeanlar ifloslanmoqda. Biz faqatgina gapirmaymiz. Biz harakat qilamiz. Bugun qabul qilgan qaroringiz ertangi kunni belgilaydi.</p>
-            </div>
-            <div class="info-card" data-aos="zoom-in" data-aos-delay="300">
-                <h3 class="i18n" data-key="card3_title">KUCH SIZNING QO'LINGIZDA</h3>
-                <p class="i18n" data-key="card3_text">Har bir klik, har bir baham ko'rilgan ma'lumot, har bir yangi loyiha — bu yashil kod satridir. Siz sayyoraning dasturchisisiz.</p>
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container hero-content">
+            <h1 class="i18n" data-key="hero_title">Kelajakni Himoya Qilish</h1>
+            <p class="i18n" data-key="hero_subtitle">Tabiatni muhofaza qilish va barqaror rivojlanish uchun innovatsion yechimlar</p>
+            <div class="hero-buttons">
+                <a href="#projects" class="btn btn-accent i18n" data-key="hero_btn_explore">Loyihalarni ko'rish</a>
+                <a href="#contact" class="btn btn-secondary i18n" data-key="hero_btn_contact">Biz bilan bog'lanish</a>
             </div>
         </div>
     </section>
 
-    <section class="section-wrapper">
-        <h2 class="section-title i18n" data-key="status_title">GLOBAL EKOLOGIK STATUS</h2>
-        <p style="text-align: center; max-width: 800px; margin: 0 auto 40px; font-size: 1.1rem; opacity: 0.8;" class="i18n" data-key="status_description">
-            Bizning datchiklarimiz tabiat holatini monitoring qilmoqda. Vaziyat og'ir, lekin imkonsiz emas.
-        </p>
-        <div class="global-status">
-            <p class="i18n" data-key="status_text">Atrof-muhit sog'ligi darajasi: <span style="color: var(--neon); font-weight: bold;">70%</span></p>
-            <div class="status-bar"><div class="status-fill"></div></div>
-            <p style="font-size: 0.9rem; opacity: 0.7;" class="i18n" data-key="last_update">Oxirgi yangilanish: 2026.02.03 - 23:25 GMT+5</p>
-        </div>
-    </section>
-
-    <section class="section-wrapper">
-        <h2 class="section-title i18n" data-key="strategy_title">HARAKATLAR STRATEGIYASI</h2>
-        <div class="info-cards-grid">
-            <div class="info-card" data-aos="fade-right" data-aos-delay="100">
-                <h3 class="i18n" data-key="strategy1_title">EKOLOGIK TA'LIM</h3>
-                <p class="i18n" data-key="strategy1_text">Raqamli darsliklar, interaktiv seminarlar va ekspertlar bilan jonli uchrashuvlar.</p>
-            </div>
-            <div class="info-card" data-aos="fade-right" data-aos-delay="200">
-                <h3 class="i18n" data-key="strategy2_title">LOYIHANI QAYTA DASTURLASH</h3>
-                <p class="i18n" data-key="strategy2_text">O'z loyihangizni yarating va global tarmoqda namoyish eting. Eng yaxshilari moliyalashtiriladi.</p>
-            </div>
-            <div class="info-card" data-aos="fade-right" data-aos-delay="300">
-                <h3 class="i18n" data-key="strategy3_title">JAMOAVIY HAMKORLIK</h3>
-                <p class="i18n" data-key="strategy3_text">Boshqa ekologlar bilan guruhlarda ishlang, muammolarga birgalikda yechim toping.</p>
+    <!-- About Section -->
+    <section class="section-wrapper" id="about">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="about_title">Biz haqimizda</h2>
+            <p class="section-description i18n" data-key="about_description">EcoFuture - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.</p>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="i18n" data-key="about_subtitle">Biz kimiz va nimani qilamiz</h2>
+                    <p class="i18n" data-key="about_text1">EcoFuture 2015-yilda tashkil etilgan bo'lib, biz tabiatni muhofaza qilish, barqaror rivojlanish va ekologik muammolarni hal qilishga qaratilgan loyihalar ustida ishlaymiz.</p>
+                    <p class="i18n" data-key="about_text2">Bizning jamoamiz ekologlar, muhandislar, dasturchilar va ijtimoiy faollaridan iborat bo'lib, ular birgalikda yangi texnologiyalar va yondashuvlar yaratishga intiladi.</p>
+                    <p class="i18n" data-key="about_text3">Bizning missiyamiz - kelajak avlodlar uchun toza va sog'lom muhit yaratishga yordam berish va jamiyatda ekologik madaniyatni rivojlantirish.</p>
+                    <a href="#contact" class="btn i18n" data-key="about_btn">Hamkorlik qilish</a>
+                </div>
+                <div class="about-image"></div>
             </div>
         </div>
     </section>
 
-    <footer style="padding: 100px 10% 150px; text-align: center; opacity: 0.6; font-size: 0.8rem;">
-        <p class="i18n" data-key="footer_text">&copy; 2026 YOSH EKOLOGLAR | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0</p>
+    <!-- Mission Section -->
+    <section class="section-wrapper" id="mission" style="background-color: #f0f7f0;">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="mission_title">Bizning Missiyamiz</h2>
+            <p class="section-description i18n" data-key="mission_description">Biz quyidagi yo'nalishlarda faol ish olib boramiz:</p>
+            
+            <div class="mission-cards">
+                <div class="mission-card" data-aos="fade-up">
+                    <i class="fas fa-tree"></i>
+                    <h3 class="i18n" data-key="mission_card1_title">O'rmonlarni Muhofaza Qilish</h3>
+                    <p class="i18n" data-key="mission_card1_text">O'rmonlarni qayta tiklash va yangi daraxtlar ekish orqali tabiatni asrab qolish.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fas fa-tint"></i>
+                    <h3 class="i18n" data-key="mission_card2_title">Toza Suv</h3>
+                    <p class="i18n" data-key="mission_card2_text">Suv manbalarini tozalash va suvdan oqilona foydalanishni targ'ib qilish.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fas fa-wind"></i>
+                    <h3 class="i18n" data-key="mission_card3_title">Qayta Tiklanadigan Energiya</h3>
+                    <p class="i18n" data-key="mission_card3_text">Quyosh va shamol energiyasidan foydalanish orqali atrof-muhitni ifloslantirmaslik.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-recycle"></i>
+                    <h3 class="i18n" data-key="mission_card4_title">Qayta Ishlash</h3>
+                    <p class="i18n" data-key="mission_card4_text">Chiqindilarni kamaytirish va qayta ishlashni rag'batlantirish orqali barqaror kelajak yaratish.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Staff Section -->
+    <section class="section-wrapper" id="staff">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="staff_title">Bizning Jamoa</h2>
+            <p class="section-description i18n" data-key="staff_description">Bizning jamoamiz - kelajakni yaratayotgan iqtidorli mutaxassislardan iborat.</p>
+            
+            <div class="info-cards-grid">
+                <!-- Staff Member 1 -->
+                <div class="info-card" data-aos="fade-up">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Aziza Karimova">
+                    <h3>Aziza Karimova</h3>
+                    <p>Ekologiya mutaxassisi</p>
+                </div>
+                
+                <!-- Staff Member 2 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="50">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Javlonbek Rahimov">
+                    <h3>Javlonbek Rahimov</h3>
+                    <p>Dasturlash bo'yicha mentor</p>
+                </div>
+                
+                <!-- Staff Member 3 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="100">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=761&q=80" alt="Nigina Tursunova">
+                    <h3>Nigina Tursunova</h3>
+                    <p>Loyiha menejeri</p>
+                </div>
+                
+                <!-- Staff Member 4 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="150">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" alt="Shoxrux Mirzaev">
+                    <h3>Shoxrux Mirzaev</h3>
+                    <p>AI tadqiqotchisi</p>
+                </div>
+                
+                <!-- Staff Member 5 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="200">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Malika Ismoilova">
+                    <h3>Malika Ismoilova</h3>
+                    <p>Ekopedagog</p>
+                </div>
+                
+                <!-- Staff Member 6 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="250">
+                    <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Otabek Norqulov">
+                    <h3>Otabek Norqulov</h3>
+                    <p>Ma'lumotlar tahlilchisi</p>
+                </div>
+                
+                <!-- Staff Member 7 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="300">
+                    <img src="https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Zarina Abduvalieva">
+                    <h3>Zarina Abduvalieva</h3>
+                    <p>Dizayner</p>
+                </div>
+                
+                <!-- Staff Member 8 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="350">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Rustamjon Qodirov">
+                    <h3>Rustamjon Qodirov</h3>
+                    <p>Server mutaxassisi</p>
+                </div>
+                
+                <!-- Staff Member 9 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="400">
+                    <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Sevinch Tojiboyeva">
+                    <h3>Sevinch Tojiboyeva</h3>
+                    <p>Kontent menejeri</p>
+                </div>
+                
+                <!-- Staff Member 10 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="450">
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Ilhom Eshmatov">
+                    <h3>Ilhom Eshmatov</h3>
+                    <p>Ekologik loyihalar rahbari</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="section-wrapper" id="projects">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="projects_title">Bizning Loyihalar</h2>
+            <p class="section-description i18n" data-key="projects_description">Dunyo bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.</p>
+            
+            <div class="projects-grid">
+                <div class="project-card" data-aos="fade-up">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project1_title">Yashil Shaharlar</h3>
+                        <p class="i18n" data-key="project1_text">Shahar atrofidagi maydonlarni ko'kalamzorlashtirish va o'rmonlashtirish loyihasi.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                    </div>
+                </div>
+                
+                <div class="project-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project2_title">Quyosh Energiyasi</h3>
+                        <p class="i18n" data-key="project2_text">Quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish loyihasi.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                    </div>
+                </div>
+                
+                <div class="project-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1454117096504-6a8691923683?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project3_title">Suvni Tozalash</h3>
+                        <p class="i18n" data-key="project3_text">Sanoat chiqindilaridan suv manbalarini tozalash va qayta ishlash loyihasi.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section-wrapper" id="contact">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="contact_title">Biz bilan bog'laning</h2>
+            <p class="section-description i18n" data-key="contact_description">Savollaringiz yoki takliflaringiz bo'lsa, quyidagi formani to'ldiring.</p>
+            
+            <div class="contact-container">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_address_title">Manzil</h3>
+                            <p class="i18n" data-key="contact_address">samarqand shahri, oqdaryo tumani, 38-maktab</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_phone_title">Telefon</h3>
+                            <p class="i18n" data-key="contact_phone">+998 91 703 13 34</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_email_title">Email</h3>
+                            <p class="i18n" data-key="contact_email">info@shoakem07.uz</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_hours_title">Ish soatlari</h3>
+                            <p class="i18n" data-key="contact_hours">Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 15:00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <div class="form-group">
+                        <label for="name" class="i18n" data-key="contact_form_name">Ismingiz</label>
+                        <input type="text" id="name" class="form-control" placeholder="Ismingizni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="i18n" data-key="contact_form_email">Email manzilingiz</label>
+                        <input type="email" id="email" class="form-control" placeholder="Email manzilingizni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="subject" class="i18n" data-key="contact_form_subject">Mavzu</label>
+                        <input type="text" id="subject" class="form-control" placeholder="Mavzuni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="i18n" data-key="contact_form_message">Xabar</label>
+                        <textarea id="message" class="form-control" placeholder="Xabaringizni kiriting"></textarea>
+                    </div>
+                    <button class="btn i18n" data-key="contact_form_send">Yuborish</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-col">
+                    <h3>EcoFuture</h3>
+                    <p class="i18n" data-key="footer_about">Tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.</p>
+                    <div class="footer-social">
+                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-facebook"></i></a>
+                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-instagram"></i></a>
+                        <a href="#" style="display: inline-block; color: var(--white); font-size: 1.5rem;"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3 class="i18n" data-key="footer_links_title">Foydali havolalar</h3>
+                    <ul class="footer-links">
+                        <li><a href="#about"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_about">Biz haqimizda</span></a></li>
+                        <li><a href="#mission"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_mission">Missiya</span></a></li>
+                        <li><a href="#staff"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_staff">Xodimlar</span></a></li>
+                        <li><a href="#projects"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_projects">Loyihalar</span></a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_contact">Aloqa</span></a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="i18n" data-key="footer_newsletter_title">Yangiliklar</h3>
+                    <p class="i18n" data-key="footer_newsletter_text">Yangiliklarimizdan xabardor bo'lish uchun obuna bo'ling.</p>
+                    <div style="margin-top: 15px; display: flex;">
+                        <input type="email" placeholder="Email manzilingiz" style="padding: 10px; border-radius: 4px 0 0 4px; border: none; width: 70%;">
+                        <button style="background: var(--primary-green); color: white; border: none; padding: 0 15px; border-radius: 0 4px 4px 0; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 yoshekologlar Barcha huquqlar himoyalangan. | <span class="i18n" data-key="footer_copyright">Yaratilgan: Ekologik jamoa tomonidan</span></p>
+            </div>
+        </div>
     </footer>
 
-    <div class="chatbot-btn" id="openChatbot">
+    <!-- Chatbot Button - as <a> tag -->
+    <a href="ymthubai.html" class="chatbot-btn" title="EKO_ASSISTANT">
         <i class="fas fa-robot"></i>
-    </div>
-
-    <div class="chatbot-window" id="chatbotWindow">
-        <div class="chatbot-header">
-            <span>
-                <div class="chatbot-status online"></div>
-                <span class="i18n" data-key="chatbot_title">EKO_ASSISTANT</span>
-            </span>
-            <span class="chatbot-close" id="closeChatbot"><i class="fas fa-times"></i></span>
-        </div>
-        <div class="chatbot-messages" id="chatbotMessages">
-            <div class="message bot">
-                <div class="i18n" data-key="chatbot_welcome">Salom! Men EKO_ASSISTANTman. Sizga qanday yordam bera olaman?</div>
-            </div>
-        </div>
-        <div class="chatbot-input">
-            <input type="text" id="userInput" class="i18n" data-key="chatbot_placeholder" placeholder="Savolingizni yozing...">
-            <button id="sendChat"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <nav>
-        <a href="#" class="nav-item active">
-            <i class="fas fa-seedling"></i>
-            <span class="i18n" data-key="nav_home">Asosiy</span>
-        </a>
-        <a href="#mission" class="nav-item">
-            <i class="fas fa-globe-asia"></i>
-            <span class="i18n" data-key="nav_mission">Missiya</span>
-        </a>
-        <a href="#news" class="nav-item">
-            <i class="fas fa-satellite-dish"></i>
-            <span class="i18n" data-key="nav_news">Yangiliklar</span>
-        </a>
-        <a href="#education" class="nav-item">
-            <i class="fas fa-brain"></i>
-            <span class="i18n" data-key="nav_education">Bilimlar</span>
-        </a>
-        <a href="#staff" class="nav-item">
-            <i class="fas fa-users-cog"></i>
-            <span class="i18n" data-key="nav_staff">Xodimlar</span>
-        </a>
-    </nav>
+    </a>
 
     <script>
-        // Multilingual support system
-        const translations = {
-            uz: {
-                system_message: "TIZIMGA KIRSATISH...",
-                hero_title: "YOSH EKOLOGLAR",
-                hero_subtitle: "Sayyora sizning harakatingizni kutmoqda. Biz global ekologik uyg'onishning bir qismimiz. Kelajak bizning qo'limizda.",
-                load_data: "[ MA'LUMOTLARNI YUKLASH ]",
-                mission_title: "BIZNING ULKAN MISSIYAMIZ",
-                mission_description: "Biz shunchaki o'rganmaymiz, biz <span style='color: var(--neon); font-weight: bold;'>qayta yaratamiz</span>. Har bir yosh ekolog bu — sayyoraning yangi umididir.",
-                card1_title: "VIRTUAL EKOTIZIM",
-                card1_text: "Bizning platforma tabiatni tushunish va uni qutqarish uchun virtual laboratoriyadir. Siz bu yerda tajriba o'tkazasiz, o'rganasiz va kodingizni yozasiz.",
-                card2_title: "INSONIYATNING KELAJAGI",
-                card2_text: "O'rmonlar yonmoqda, okeanlar ifloslanmoqda. Biz faqatgina gapirmaymiz. Biz harakat qilamiz. Bugun qabul qilgan qaroringiz ertangi kunni belgilaydi.",
-                card3_title: "KUCH SIZNING QO'LINGIZDA",
-                card3_text: "Har bir klik, har bir baham ko'rilgan ma'lumot, har bir yangi loyiha — bu yashil kod satridir. Siz sayyoraning dasturchisisiz.",
-                status_title: "GLOBAL EKOLOGIK STATUS",
-                status_description: "Bizning datchiklarimiz tabiat holatini monitoring qilmoqda. Vaziyat og'ir, lekin imkonsiz emas.",
-                status_text: "Atrof-muhit sog'ligi darajasi: <span style='color: var(--neon); font-weight: bold;'>70%</span>",
-                last_update: "Oxirgi yangilanish: 2026.02.03 - 23:25 GMT+5",
-                strategy_title: "HARAKATLAR STRATEGIYASI",
-                strategy1_title: "EKOLOGIK TA'LIM",
-                strategy1_text: "Raqamli darsliklar, interaktiv seminarlar va ekspertlar bilan jonli uchrashuvlar.",
-                strategy2_title: "LOYIHANI QAYTA DASTURLASH",
-                strategy2_text: "O'z loyihangizni yarating va global tarmoqda namoyish eting. Eng yaxshilari moliyalashtiriladi.",
-                strategy3_title: "JAMOAVIY HAMKORLIK",
-                strategy3_text: "Boshqa ekologlar bilan guruhlarda ishlang, muammolarga birgalikda yechim toping.",
-                footer_text: "&copy; 2026 YOSH EKOLOGLAR | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0",
-                chatbot_title: "EKO_ASSISTANT",
-                chatbot_welcome: "Salom! Men EKO_ASSISTANTman. Sizga qanday yordam bera olaman?",
-                chatbot_placeholder: "Savolingizni yozing...",
-                chatbot_thinking: "O'ylayapman...",
-                chatbot_language: "Tilni tanlang:",
-                nav_home: "Asosiy",
-                nav_mission: "Missiya",
-                nav_news: "Yangiliklar",
-                nav_education: "Bilimlar",
-                nav_staff: "Xodimlar",
-                chatbot_options_staff: "Xodimlar haqida ma'lumot",
-                chatbot_options_education: "Ekologik ta'lim",
-                chatbot_options_news: "So'nggi yangiliklar",
-                chatbot_options_mission: "Bizning missiya",
-                chatbot_options_plastic: "Plastik ifloslanish",
-                chatbot_response_staff: "Bizning kiber-ekologlar jamoamiz 'System Core' bo'limida joylashgan. Ularni ko'rishni istaysizmi?",
-                chatbot_response_education: "Bilimlar bazasida siz uchun 100 dan ortiq referat va maqolalar tayyorlab qo'yilgan.",
-                chatbot_response_news: "Global ekologik status va so'nggi kiber-yangiliklarimiz bu yerda:",
-                chatbot_response_mission: "Bizning asosiy maqsadimiz — tabiatni kiber-texnologiyalar orqali qayta tiklash. Batafsil ma'lumot:",
-                chatbot_response_plastic: "Dunyoda har yili 300 million tonna plastik chiqindisi hosil bo'ladi. Buni to'xtatish uchun bizning 'Zero Waste' strategiyamizni ko'ring.",
-                chatbot_response_greeting: "Salom! Yosh Ekologlar saytiga xush kelibsiz. Qanday ma'lumot kerak?",
-                chatbot_response_about: "Bu sayt yoshlarni tabiatni asrashga undash, ekologik bilimlarni oshirish va amaliy yechimlar taklif qilish uchun yaratilgan.",
-                chatbot_response_usage: "Siz Bilimlar bo'limidan ma'lumot olishingiz, Yangiliklar bo'limidan so'nggi xabarlarni ko'rishingiz va Misiyamiz bo'limidan bizning maqsadlarimizni o'rganishingiz mumkin.",
-                chatbot_response_thanks: "Arzimaydi! Sayyoramiz uchun qilayotgan harakatlaringiz uchun rahmat.",
-                chatbot_response_default: "Kechirasiz, men hozircha faqat statik javoblar bera olaman. Tez orada sun'iy intellektim yanada rivojlanadi!",
-                chatbot_action_staff: "Xodimlarni ko'rish",
-                chatbot_action_education: "Bilimlar bo'limi",
-                chatbot_action_news: "Yangiliklar",
-                chatbot_action_mission: "Missiyamiz"
-            },
-            en: {
-                system_message: "SYSTEM INITIALIZING...",
-                hero_title: "YOUNG ECOLOGISTS",
-                hero_subtitle: "The planet is waiting for your move. We are part of a global ecological awakening. The future is in our hands.",
-                load_data: "[ LOAD DATA ]",
-                mission_title: "OUR GREAT MISSION",
-                mission_description: "We don't just learn, we <span style='color: var(--neon); font-weight: bold;'>recreate</span>. Every young ecologist is the planet's new hope.",
-                card1_title: "VIRTUAL ECOSYSTEM",
-                card1_text: "Our platform is a virtual laboratory for understanding and saving nature. Here you can experiment, learn, and write your code.",
-                card2_title: "HUMANITY'S FUTURE",
-                card2_text: "Forests are burning, oceans are polluted. We don't just talk. We act. The decision you make today shapes tomorrow.",
-                card3_title: "POWER IN YOUR HANDS",
-                card3_text: "Every click, every shared data point, every new project is a line of green code. You are the planet's programmer.",
-                status_title: "GLOBAL ECOLOGICAL STATUS",
-                status_description: "Our sensors monitor the state of nature. The situation is serious, but not impossible.",
-                status_text: "Environmental health level: <span style='color: var(--neon); font-weight: bold;'>70%</span>",
-                last_update: "Last update: 2026.02.03 - 23:25 GMT+5",
-                strategy_title: "ACTION STRATEGY",
-                strategy1_title: "ECOLOGICAL EDUCATION",
-                strategy1_text: "Digital textbooks, interactive seminars, and live meetings with experts.",
-                strategy2_title: "PROJECT REPROGRAMMING",
-                strategy2_text: "Create your own project and showcase it on the global network. The best ones receive funding.",
-                strategy3_title: "COLLECTIVE COLLABORATION",
-                strategy3_text: "Work in groups with other ecologists to find solutions to problems together.",
-                footer_text: "&copy; 2026 YOUNG ECOLOGISTS | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0",
-                chatbot_title: "EKO_ASSISTANT",
-                chatbot_welcome: "Hello! I am EKO_ASSISTANT. How can I help you today?",
-                chatbot_placeholder: "Type your question...",
-                chatbot_thinking: "Thinking...",
-                chatbot_language: "Select language:",
-                nav_home: "Home",
-                nav_mission: "Mission",
-                nav_news: "News",
-                nav_education: "Education",
-                nav_staff: "Staff",
-                chatbot_options_staff: "Information about staff",
-                chatbot_options_education: "Ecological education",
-                chatbot_options_news: "Latest news",
-                chatbot_options_mission: "Our mission",
-                chatbot_options_plastic: "Plastic pollution",
-                chatbot_response_staff: "Our cyber-ecologists team is located in the 'System Core' section. Would you like to see them?",
-                chatbot_response_education: "Our knowledge base contains over 100 prepared reports and articles for you.",
-                chatbot_response_news: "Global ecological status and our latest cyber-news are here:",
-                chatbot_response_mission: "Our main goal is to restore nature through cyber-technologies. Detailed information:",
-                chatbot_response_plastic: "300 million tons of plastic waste are generated worldwide every year. See our 'Zero Waste' strategy to stop this.",
-                chatbot_response_greeting: "Hello! Welcome to the Young Ecologists website. What information do you need?",
-                chatbot_response_about: "This website was created to inspire youth to protect nature, increase ecological knowledge, and offer practical solutions.",
-                chatbot_response_usage: "You can get information from the Education section, view the latest news in the News section, and learn about our goals in the Mission section.",
-                chatbot_response_thanks: "You're welcome! Thank you for your actions to save our planet.",
-                chatbot_response_default: "Sorry, I can only provide static responses for now. My AI will be more advanced soon!",
-                chatbot_action_staff: "View Staff",
-                chatbot_action_education: "Education Section",
-                chatbot_action_news: "News",
-                chatbot_action_mission: "Our Mission"
-            },
-            ru: {
-                system_message: "ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...",
-                hero_title: "МОЛОДЫЕ ЭКОЛОГИ",
-                hero_subtitle: "Планета ждет вашего хода. Мы часть глобального экологического пробуждения. Будущее в наших руках.",
-                load_data: "[ ЗАГРУЗИТЬ ДАННЫЕ ]",
-                mission_title: "НАША ВЕЛИКАЯ МИССИЯ",
-                mission_description: "Мы не просто учимся, мы <span style='color: var(--neon); font-weight: bold;'>пересоздаем</span>. Каждый молодой эколог — это новая надежда планеты.",
-                card1_title: "ВИРТУАЛЬНАЯ ЭКОСИСТЕМА",
-                card1_text: "Наша платформа — это виртуальная лаборатория для понимания и спасения природы. Здесь вы можете экспериментировать, учиться и писать свой код.",
-                card2_title: "БУДУЩЕЕ ЧЕЛОВЕЧЕСТВА",
-                card2_text: "Горят леса, загрязняются океаны. Мы не просто говорим. Мы действуем. Решение, которое вы примете сегодня, формирует завтра.",
-                card3_title: "СИЛА В ВАШИХ РУКАХ",
-                card3_text: "Каждый клик, каждая общая точка данных, каждый новый проект — это строка зеленого кода. Вы программист планеты.",
-                status_title: "ГЛОБАЛЬНЫЙ ЭКОЛОГИЧЕСКИЙ СТАТУС",
-                status_description: "Наши датчики отслеживают состояние природы. Ситуация серьезная, но не безнадежная.",
-                status_text: "Уровень экологического здоровья: <span style='color: var(--neon); font-weight: bold;'>70%</span>",
-                last_update: "Последнее обновление: 2026.02.03 - 23:25 GMT+5",
-                strategy_title: "СТРАТЕГИЯ ДЕЙСТВИЙ",
-                strategy1_title: "ЭКОЛОГИЧЕСКОЕ ОБРАЗОВАНИЕ",
-                strategy1_text: "Цифровые учебники, интерактивные семинары и живые встречи с экспертами.",
-                strategy2_title: "ПЕРЕПРОГРАММИРОВАНИЕ ПРОЕКТОВ",
-                strategy2_text: "Создайте свой собственный проект и продемонстрируйте его в глобальной сети. Лучшие получают финансирование.",
-                strategy3_title: "КОЛЛЕКТИВНОЕ СОТРУДНИЧЕСТВО",
-                strategy3_text: "Работайте в группах с другими экологами, чтобы вместе находить решения проблем.",
-                footer_text: "&copy; 2026 МОЛОДЫЕ ЭКОЛОГИ | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0",
-                chatbot_title: "ЭКО_АССИСТЕНТ",
-                chatbot_welcome: "Здравствуйте! Я ЭКО_АССИСТЕНТ. Чем я могу вам помочь сегодня?",
-                chatbot_placeholder: "Введите ваш вопрос...",
-                chatbot_thinking: "Думаю...",
-                chatbot_language: "Выберите язык:",
-                nav_home: "Главная",
-                nav_mission: "Миссия",
-                nav_news: "Новости",
-                nav_education: "Образование",
-                nav_staff: "Сотрудники",
-                chatbot_options_staff: "Информация о сотрудниках",
-                chatbot_options_education: "Экологическое образование",
-                chatbot_options_news: "Последние новости",
-                chatbot_options_mission: "Наша миссия",
-                chatbot_options_plastic: "Пластиковое загрязнение",
-                chatbot_response_staff: "Наша команда кибер-экологов находится в разделе 'Системное Ядро'. Хотите их увидеть?",
-                chatbot_response_education: "В нашей базе знаний содержится более 100 подготовленных отчетов и статей для вас.",
-                chatbot_response_news: "Глобальный экологический статус и наши последние кибер-новости здесь:",
-                chatbot_response_mission: "Наша главная цель — восстановить природу с помощью кибер-технологий. Подробная информация:",
-                chatbot_response_plastic: "Во всем мире ежегодно образуется 300 миллионов тонн пластиковых отходов. Ознакомьтесь с нашей стратегией 'Нулевые Отходы', чтобы остановить это.",
-                chatbot_response_greeting: "Здравствуйте! Добро пожаловать на сайт Молодых Экологов. Какая информация вам нужна?",
-                chatbot_response_about: "Этот сайт создан, чтобы вдохновить молодежь защищать природу, повышать экологические знания и предлагать практические решения.",
-                chatbot_response_usage: "Вы можете получить информацию из раздела Образование, просмотреть последние новости в разделе Новости и узнать о наших целях в разделе Миссия.",
-                chatbot_response_thanks: "Пожалуйста! Спасибо за ваши действия по спасению нашей планеты.",
-                chatbot_response_default: "Извините, пока я могу давать только статические ответы. Мой ИИ скоро станет более продвинутым!",
-                chatbot_action_staff: "Посмотреть Сотрудников",
-                chatbot_action_education: "Раздел Образования",
-                chatbot_action_news: "Новости",
-                chatbot_action_mission: "Наша Миссия"
-            },
-            ko: {
-                system_message: "시스템 초기화 중...",
-                hero_title: "청년 생태학자들",
-                hero_subtitle: "행성은 당신의 움직임을 기다리고 있습니다. 우리는 글로벌 생태적 각성의 일부입니다. 미래는 우리 손에 있습니다.",
-                load_data: "[ 데이터 로드 ]",
-                mission_title: "우리의 위대한 사명",
-                mission_description: "우리는 단지 배우지 않습니다, 우리는 <span style='color: var(--neon); font-weight: bold;'>재창조합니다</span>. 모든 젊은 생태학자는 행성의 새로운 희망입니다.",
-                card1_title: "가상 생태계",
-                card1_text: "우리 플랫폼은 자연을 이해하고 구하기 위한 가상 실험실입니다. 여기서 실험하고, 배우고, 코드를 작성할 수 있습니다.",
-                card2_title: "인류의 미래",
-                card2_text: "숲이 타고, 바다가 오염되고 있습니다. 우리는 단지 말하지 않습니다. 행동합니다. 오늘 내린 결정이 내일을 형성합니다.",
-                card3_title: "당신 손에 있는 힘",
-                card3_text: "모든 클릭, 모든 공유된 데이터, 모든 새로운 프로젝트는 녹색 코드의 한 줄입니다. 당신은 행성의 프로그래머입니다.",
-                status_title: "글로벌 생태 상태",
-                status_description: "우리 센서는 자연 상태를 모니터링합니다. 상황은 심각하지만 불가능하지는 않습니다.",
-                status_text: "환경 건강 수준: <span style='color: var(--neon); font-weight: bold;'>70%</span>",
-                last_update: "마지막 업데이트: 2026.02.03 - 23:25 GMT+5",
-                strategy_title: "행동 전략",
-                strategy1_title: "생태 교육",
-                strategy1_text: "디지털 교과서, 인터랙티브 세미나, 전문가와의 라이브 만남.",
-                strategy2_title: "프로젝트 재프로그래밍",
-                strategy2_text: "자신의 프로젝트를 만들고 글로벌 네트워크에서 선보이세요. 최고의 프로젝트는 자금을 지원받습니다.",
-                strategy3_title: "집단적 협력",
-                strategy3_text: "다른 생태학자들과 그룹으로 일하며 문제에 대한 해결책을 함께 찾으세요.",
-                footer_text: "&copy; 2026 청년 생태학자들 | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0",
-                chatbot_title: "에코_어시스턴트",
-                chatbot_welcome: "안녕하세요! 저는 에코_어시스턴트입니다. 오늘 무엇을 도와드릴까요?",
-                chatbot_placeholder: "질문을 입력하세요...",
-                chatbot_thinking: "생각 중...",
-                chatbot_language: "언어 선택:",
-                nav_home: "홈",
-                nav_mission: "사명",
-                nav_news: "뉴스",
-                nav_education: "교육",
-                nav_staff: "직원",
-                chatbot_options_staff: "직원 정보",
-                chatbot_options_education: "생태 교육",
-                chatbot_options_news: "최신 뉴스",
-                chatbot_options_mission: "우리의 사명",
-                chatbot_options_plastic: "플라스틱 오염",
-                chatbot_response_staff: "우리 사이버 생태학자 팀은 '시스템 코어' 섹션에 있습니다. 보시겠습니까?",
-                chatbot_response_education: "지식 베이스에는 100개 이상의 보고서와 기사가 준비되어 있습니다.",
-                chatbot_response_news: "글로벌 생태 상태 및 최신 사이버 뉴스는 여기 있습니다:",
-                chatbot_response_mission: "우리의 주요 목표는 사이버 기술을 통해 자연을 복원하는 것입니다. 자세한 정보:",
-                chatbot_response_plastic: "전 세계적으로 매년 3억 톤의 플라스틱 폐기물이 발생합니다. 이를 막기 위해 '제로 웨이스트' 전략을 확인하세요.",
-                chatbot_response_greeting: "안녕하세요! 청년 생태학자 웹사이트에 오신 것을 환영합니다. 어떤 정보가 필요하십니까?",
-                chatbot_response_about: "이 웹사이트는 청소년에게 자연 보호를 장려하고, 생태 지식을 높이며, 실용적인 솔루션을 제안하기 위해 만들어졌습니다.",
-                chatbot_response_usage: "교육 섹션에서 정보를 얻고, 뉴스 섹션에서 최신 소식을 보고, 미션 섹션에서 우리의 목표를 배울 수 있습니다.",
-                chatbot_response_thanks: "천만에요! 우리 행성을 위한 당신의 행동에 감사드립니다.",
-                chatbot_response_default: "죄송합니다, 현재는 정적 응답만 제공할 수 있습니다. 곧 AI가 더 발전할 것입니다!",
-                chatbot_action_staff: "직원 보기",
-                chatbot_action_education: "교육 섹션",
-                chatbot_action_news: "뉴스",
-                chatbot_action_mission: "우리의 사명"
-            },
-            zh: {
-                system_message: "系统初始化中...",
-                hero_title: "青年生态学家",
-                hero_subtitle: "地球正在等待您的行动。我们是全球生态觉醒的一部分。未来掌握在我们手中。",
-                load_data: "[ 加载数据 ]",
-                mission_title: "我们的伟大使命",
-                mission_description: "我们不只是学习，我们 <span style='color: var(--neon); font-weight: bold;'>重新创造</span>。每一位青年生态学家都是地球的新希望。",
-                card1_title: "虚拟生态系统",
-                card1_text: "我们的平台是理解和拯救自然的虚拟实验室。在这里您可以进行实验、学习和编写代码。",
-                card2_title: "人类的未来",
-                card2_text: "森林在燃烧，海洋被污染。我们不只是说说而已。我们采取行动。您今天做出的决定将塑造明天。",
-                card3_title: "力量在您手中",
-                card3_text: "每一次点击，每一个共享的数据点，每一个新项目都是一行绿色代码。您是地球的程序员。",
-                status_title: "全球生态状况",
-                status_description: "我们的传感器监测自然状态。情况严重，但并非不可能解决。",
-                status_text: "环境健康水平: <span style='color: var(--neon); font-weight: bold;'>70%</span>",
-                last_update: "最后更新: 2026.02.03 - 23:25 GMT+5",
-                strategy_title: "行动策略",
-                strategy1_title: "生态教育",
-                strategy1_text: "数字教科书、互动研讨会和与专家的现场会议。",
-                strategy2_title: "项目重新编程",
-                strategy2_text: "创建您自己的项目并在全球网络上展示。最佳项目将获得资助。",
-                strategy3_title: "集体合作",
-                strategy3_text: "与其他生态学家分组工作，共同寻找问题的解决方案。",
-                footer_text: "&copy; 2026 青年生态学家 | GLOBAL_ECO_MATRIX_ONLINE | V.2.0.0",
-                chatbot_title: "生态助手",
-                chatbot_welcome: "您好！我是生态助手。今天有什么可以帮您的？",
-                chatbot_placeholder: "输入您的问题...",
-                chatbot_thinking: "思考中...",
-                chatbot_language: "选择语言:",
-                nav_home: "首页",
-                nav_mission: "使命",
-                nav_news: "新闻",
-                nav_education: "教育",
-                nav_staff: "员工",
-                chatbot_options_staff: "员工信息",
-                chatbot_options_education: "生态教育",
-                chatbot_options_news: "最新新闻",
-                chatbot_options_mission: "我们的使命",
-                chatbot_options_plastic: "塑料污染",
-                chatbot_response_staff: "我们的网络生态学家团队位于'系统核心'部分。您想看看他们吗？",
-                chatbot_response_education: "我们的知识库为您准备了100多份报告和文章。",
-                chatbot_response_news: "全球生态状况和我们最新的网络新闻在这里：",
-                chatbot_response_mission: "我们的主要目标是通过网络技术恢复自然。详细信息：",
-                chatbot_response_plastic: "全世界每年产生3亿吨塑料垃圾。查看我们的'零浪费'战略来阻止这种情况。",
-                chatbot_response_greeting: "您好！欢迎来到青年生态学家网站。您需要什么信息？",
-                chatbot_response_about: "本网站旨在激励青年保护自然，提高生态知识，并提供实用解决方案。",
-                chatbot_response_usage: "您可以从教育部分获取信息，从新闻部分查看最新消息，并从使命部分了解我们的目标。",
-                chatbot_response_thanks: "不客气！感谢您为拯救我们的星球所采取的行动。",
-                chatbot_response_default: "抱歉，目前我只能提供静态回复。我的人工智能很快就会更先进！",
-                chatbot_action_staff: "查看员工",
-                chatbot_action_education: "教育部分",
-                chatbot_action_news: "新闻",
-                chatbot_action_mission: "我们的使命"
-            }
-        };
-
-        // Chatbot knowledge base with multilingual support
-        const botKnowledgeBase = {
-            uz: [
-                {
-                    keywords: ["hodim", "xodim", "jamoa", "kimlar", "ishchilar", "admin", "xodimlar"],
-                    response: "chatbot_response_staff",
-                    options: ["chatbot_action_staff"],
-                    actions: [{text: "chatbot_action_staff", link: "#staff", type: "scroll"}]
-                },
-                {
-                    keywords: ["bilim", "referat", "maqola", "o'qish", "ma'lumot", "kitob", "ta'lim", "o'rganish"],
-                    response: "chatbot_response_education",
-                    options: ["chatbot_action_education"],
-                    actions: [{text: "chatbot_action_education", link: "#education", type: "scroll"}]
-                },
-                {
-                    keywords: ["yangilik", "nima gap", "so'nggi", "xabar", "xabarlar", "jadid"],
-                    response: "chatbot_response_news",
-                    options: ["chatbot_action_news"],
-                    actions: [{text: "chatbot_action_news", link: "#news", type: "scroll"}]
-                },
-                {
-                    keywords: ["maqsad", "missiya", "nima bu", "vazifa", "maqsadimiz"],
-                    response: "chatbot_response_mission",
-                    options: ["chatbot_action_mission"],
-                    actions: [{text: "chatbot_action_mission", link: "#mission", type: "scroll"}]
-                },
-                {
-                    keywords: ["salom", "assalom", "qale", "hello", "hey", "hi", "privet", "здравствуйте"],
-                    response: "chatbot_response_greeting"
-                },
-                {
-                    keywords: ["sayt haqida", "bu sayt", "sayt", "haqida", "nimadir"],
-                    response: "chatbot_response_about"
-                },
-                {
-                    keywords: ["qanday foydalanish", "foydalanish", "qilish", "ishlatish"],
-                    response: "chatbot_response_usage"
-                },
-                {
-                    keywords: ["rahmat", "thanks", "thank you", "спасибо", "감사", "谢谢"],
-                    response: "chatbot_response_thanks"
-                },
-                {
-                    keywords: ["chiqindi", "plastik", "muammo", "ifloslanish", "plastik chiqindi"],
-                    response: "chatbot_response_plastic"
-                }
-            ],
-            en: [
-                {
-                    keywords: ["staff", "team", "who", "members", "admin", "employees", "people"],
-                    response: "chatbot_response_staff",
-                    options: ["chatbot_action_staff"],
-                    actions: [{text: "chatbot_action_staff", link: "#staff", type: "scroll"}]
-                },
-                {
-                    keywords: ["education", "learn", "study", "knowledge", "articles", "reports", "books", "training"],
-                    response: "chatbot_response_education",
-                    options: ["chatbot_action_education"],
-                    actions: [{text: "chatbot_action_education", link: "#education", type: "scroll"}]
-                },
-                {
-                    keywords: ["news", "latest", "updates", "what's new", "recent", "information"],
-                    response: "chatbot_response_news",
-                    options: ["chatbot_action_news"],
-                    actions: [{text: "chatbot_action_news", link: "#news", type: "scroll"}]
-                },
-                {
-                    keywords: ["mission", "goal", "purpose", "objective", "aim", "what is"],
-                    response: "chatbot_response_mission",
-                    options: ["chatbot_action_mission"],
-                    actions: [{text: "chatbot_action_mission", link: "#mission", type: "scroll"}]
-                },
-                {
-                    keywords: ["hello", "hi", "hey", "greetings", "good day", "salom", "привет", "안녕", "你好"],
-                    response: "chatbot_response_greeting"
-                },
-                {
-                    keywords: ["about", "website", "this site", "what is this", "information"],
-                    response: "chatbot_response_about"
-                },
-                {
-                    keywords: ["how to use", "use", "navigate", "help", "instructions", "guide"],
-                    response: "chatbot_response_usage"
-                },
-                {
-                    keywords: ["thanks", "thank you", "appreciate", "grateful", "rahmat", "спасибо", "감사", "谢谢"],
-                    response: "chatbot_response_thanks"
-                },
-                {
-                    keywords: ["waste", "plastic", "pollution", "problem", "environment", "trash", "garbage"],
-                    response: "chatbot_response_plastic"
-                }
-            ],
-            ru: [
-                {
-                    keywords: ["сотрудники", "команда", "кто", "участники", "админ", "работники", "люди", "персонал"],
-                    response: "chatbot_response_staff",
-                    options: ["chatbot_action_staff"],
-                    actions: [{text: "chatbot_action_staff", link: "#staff", type: "scroll"}]
-                },
-                {
-                    keywords: ["образование", "учиться", "знание", "статьи", "отчеты", "книги", "обучение", "тренинг"],
-                    response: "chatbot_response_education",
-                    options: ["chatbot_action_education"],
-                    actions: [{text: "chatbot_action_education", link: "#education", type: "scroll"}]
-                },
-                {
-                    keywords: ["новости", "последние", "обновления", "что нового", "недавние", "информация"],
-                    response: "chatbot_response_news",
-                    options: ["chatbot_action_news"],
-                    actions: [{text: "chatbot_action_news", link: "#news", type: "scroll"}]
-                },
-                {
-                    keywords: ["миссия", "цель", "назначение", "задача", "что это"],
-                    response: "chatbot_response_mission",
-                    options: ["chatbot_action_mission"],
-                    actions: [{text: "chatbot_action_mission", link: "#mission", type: "scroll"}]
-                },
-                {
-                    keywords: ["здравствуйте", "привет", "эй", "приветствия", "хороший день", "hello", "salom", "안녕", "你好"],
-                    response: "chatbot_response_greeting"
-                },
-                {
-                    keywords: ["о сайте", "веб-сайт", "этот сайт", "что это", "информация"],
-                    response: "chatbot_response_about"
-                },
-                {
-                    keywords: ["как использовать", "использовать", "навигация", "помощь", "инструкции", "гид"],
-                    response: "chatbot_response_usage"
-                },
-                {
-                    keywords: ["спасибо", "благодарю", "признателен", "благодарность", "rahmat", "thanks", "감사", "谢谢"],
-                    response: "chatbot_response_thanks"
-                },
-                {
-                    keywords: ["отходы", "пластик", "загрязнение", "проблема", "окружающая среда", "мусор", "trash"],
-                    response: "chatbot_response_plastic"
-                }
-            ],
-            ko: [
-                {
-                    keywords: ["직원", "팀", "누구", "멤버", "관리자", "사람들", "staff", "team"],
-                    response: "chatbot_response_staff",
-                    options: ["chatbot_action_staff"],
-                    actions: [{text: "chatbot_action_staff", link: "#staff", type: "scroll"}]
-                },
-                {
-                    keywords: ["교육", "배우다", "지식", "기사", "보고서", "책", "학습", "교육받다"],
-                    response: "chatbot_response_education",
-                    options: ["chatbot_action_education"],
-                    actions: [{text: "chatbot_action_education", link: "#education", type: "scroll"}]
-                },
-                {
-                    keywords: ["뉴스", "최신", "업데이트", "무엇이 새로운", "최근", "정보"],
-                    response: "chatbot_response_news",
-                    options: ["chatbot_action_news"],
-                    actions: [{text: "chatbot_action_news", link: "#news", type: "scroll"}]
-                },
-                {
-                    keywords: ["사명", "목표", "목적", "객관적", "무엇", "미션"],
-                    response: "chatbot_response_mission",
-                    options: ["chatbot_action_mission"],
-                    actions: [{text: "chatbot_action_mission", link: "#mission", type: "scroll"}]
-                },
-                {
-                    keywords: ["안녕하세요", "안녕", "헤이", "인사", "좋은 하루", "hello", "salom", "привет", "你好"],
-                    response: "chatbot_response_greeting"
-                },
-                {
-                    keywords: ["정보", "웹사이트", "이 사이트", "이것은 무엇인가", "정보"],
-                    response: "chatbot_response_about"
-                },
-                {
-                    keywords: ["사용하는 방법", "사용", "탐색", "도움", "지침", "가이드"],
-                    response: "chatbot_response_usage"
-                },
-                {
-                    keywords: ["감사", "고마워", "감사합니다", "사랑", "rahmat", "спасибо", "thanks", "谢谢"],
-                    response: "chatbot_response_thanks"
-                },
-                {
-                    keywords: ["폐기물", "플라스틱", "오염", "문제", "환경", "쓰레기", "garbage"],
-                    response: "chatbot_response_plastic"
-                }
-            ],
-            zh: [
-                {
-                    keywords: ["员工", "团队", "谁", "成员", "管理员", "工作人员", "人们", "staff"],
-                    response: "chatbot_response_staff",
-                    options: ["chatbot_action_staff"],
-                    actions: [{text: "chatbot_action_staff", link: "#staff", type: "scroll"}]
-                },
-                {
-                    keywords: ["教育", "学习", "知识", "文章", "报告", "书籍", "培训", "学习"],
-                    response: "chatbot_response_education",
-                    options: ["chatbot_action_education"],
-                    actions: [{text: "chatbot_action_education", link: "#education", type: "scroll"}]
-                },
-                {
-                    keywords: ["新闻", "最新", "更新", "有什么新", "最近", "信息"],
-                    response: "chatbot_response_news",
-                    options: ["chatbot_action_news"],
-                    actions: [{text: "chatbot_action_news", link: "#news", type: "scroll"}]
-                },
-                {
-                    keywords: ["使命", "目标", "目的", "客观", "什么", "任务"],
-                    response: "chatbot_response_mission",
-                    options: ["chatbot_action_mission"],
-                    actions: [{text: "chatbot_action_mission", link: "#mission", type: "scroll"}]
-                },
-                {
-                    keywords: ["你好", "嗨", "嘿", "问候", "美好的一天", "hello", "salom", "привет", "안녕"],
-                    response: "chatbot_response_greeting"
-                },
-                {
-                    keywords: ["关于", "网站", "这个网站", "这是什么", "信息"],
-                    response: "chatbot_response_about"
-                },
-                {
-                    keywords: ["如何使用", "使用", "导航", "帮助", "说明", "指南"],
-                    response: "chatbot_response_usage"
-                },
-                {
-                    keywords: ["谢谢", "感谢", "感激", "感谢", "rahmat", "спасибо", "감사", "thanks"],
-                    response: "chatbot_response_thanks"
-                },
-                {
-                    keywords: ["废物", "塑料", "污染", "问题", "环境", "垃圾", "trash"],
-                    response: "chatbot_response_plastic"
-                }
-            ]
-        };
-
-        // Language detection and management
-        let currentLang = 'uz';
-        const langButtons = document.querySelectorAll('.lang-btn');
-        const translatableElements = document.querySelectorAll('[data-key]');
-        
-        // Initialize with saved language or browser language
-        document.addEventListener('DOMContentLoaded', () => {
-            // Try to get saved language or detect browser language
-            const savedLang = localStorage.getItem('ecoLang') || 
-                             (navigator.language.startsWith('en') ? 'en' : 
-                             (navigator.language.startsWith('ru') ? 'ru' : 
-                             (navigator.language.startsWith('ko') ? 'ko' : 
-                             (navigator.language.startsWith('zh') ? 'zh' : 'uz'))));
+        // Initialize AOS
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
             
-            // Set initial language
-            setLanguage(savedLang);
+            // Mobile Navigation Toggle
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
             
-            // Add event listeners to language buttons
-            langButtons.forEach(button => {
+            hamburger.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                hamburger.innerHTML = navLinks.classList.contains('active') 
+                    ? '<i class="fas fa-times"></i>' 
+                    : '<i class="fas fa-bars"></i>';
+            });
+            
+            // Close mobile menu when clicking a link
+            document.querySelectorAll('.nav-item').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('active');
+                    hamburger.innerHTML = '<i class="fas fa-bars"></i>';
+                });
+            });
+            
+            // Navigation active state
+            const sections = document.querySelectorAll('section');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    if (pageYOffset >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('href').slice(1) === current) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+            
+            // Language Switcher
+            const translations = {
+                uz: {
+                    nav_home: "Bosh sahifa",
+                    nav_about: "Biz haqimizda",
+                    nav_mission: "Missiya",
+                    nav_staff: "Xodimlar",
+                    nav_projects: "Loyihalar",
+                    nav_contact: "Aloqa",
+                    hero_title: "Kelajakni Himoya Qilish",
+                    hero_subtitle: "Tabiatni muhofaza qilish va barqaror rivojlanish uchun innovatsion yechimlar",
+                    hero_btn_explore: "Loyihalarni ko'rish",
+                    hero_btn_contact: "Biz bilan bog'lanish",
+                    about_title: "Biz haqimizda",
+                    about_description: "EcoFuture - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.",
+                    about_subtitle: "Biz kimiz va nimani qilamiz",
+                    about_text1: "EcoFuture 2015-yilda tashkil etilgan bo'lib, biz tabiatni muhofaza qilish, barqaror rivojlanish va ekologik muammolarni hal qilishga qaratilgan loyihalar ustida ishlaymiz.",
+                    about_text2: "Bizning jamoamiz ekologlar, muhandislar, dasturchilar va ijtimoiy faollaridan iborat bo'lib, ular birgalikda yangi texnologiyalar va yondashuvlar yaratishga intiladi.",
+                    about_text3: "Bizning missiyamiz - kelajak avlodlar uchun toza va sog'lom muhit yaratishga yordam berish va jamiyatda ekologik madaniyatni rivojlantirish.",
+                    about_btn: "Hamkorlik qilish",
+                    mission_title: "Bizning Missiyamiz",
+                    mission_description: "Biz quyidagi yo'nalishlarda faol ish olib boramiz:",
+                    mission_card1_title: "O'rmonlarni Muhofaza Qilish",
+                    mission_card1_text: "O'rmonlarni qayta tiklash va yangi daraxtlar ekish orqali tabiatni asrab qolish.",
+                    mission_card2_title: "Toza Suv",
+                    mission_card2_text: "Suv manbalarini tozalash va suvdan oqilona foydalanishni targ'ib qilish.",
+                    mission_card3_title: "Qayta Tiklanadigan Energiya",
+                    mission_card3_text: "Quyosh va shamol energiyasidan foydalanish orqali atrof-muhitni ifloslantirmaslik.",
+                    mission_card4_title: "Qayta Ishlash",
+                    mission_card4_text: "Chiqindilarni kamaytirish va qayta ishlashni rag'batlantirish orqali barqaror kelajak yaratish.",
+                    staff_title: "Bizning Jamoa",
+                    staff_description: "Bizning jamoamiz - kelajakni yaratayotgan iqtidorli mutaxassislardan iborat.",
+                    projects_title: "Bizning Loyihalar",
+                    projects_description: "Dunyo bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.",
+                    project1_title: "Yashil Shaharlar",
+                    project1_text: "Shahar atrofidagi maydonlarni ko'kalamzorlashtirish va o'rmonlashtirish loyihasi.",
+                    project2_title: "Quyosh Energiyasi",
+                    project2_text: "Quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish loyihasi.",
+                    project3_title: "Suvni Tozalash",
+                    project3_text: "Sanoat chiqindilaridan suv manbalarini tozalash va qayta ishlash loyihasi.",
+                    project_btn: "Batafsil",
+                    contact_title: "Biz bilan bog'laning",
+                    contact_description: "Savollaringiz yoki takliflaringiz bo'lsa, quyidagi formani to'ldiring.",
+                    contact_address_title: "Manzil",
+                    contact_address: "Toshkent shahri, Yunusobod tumani, 123-usul",
+                    contact_phone_title: "Telefon",
+                    contact_phone: "+998 90 123 45 67",
+                    contact_email_title: "Email",
+                    contact_email: "info@ecofuture.uz",
+                    contact_hours_title: "Ish soatlari",
+                    contact_hours: "Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 15:00",
+                    contact_form_name: "Ismingiz",
+                    contact_form_email: "Email manzilingiz",
+                    contact_form_subject: "Mavzu",
+                    contact_form_message: "Xabar",
+                    contact_form_send: "Yuborish",
+                    footer_about: "Tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.",
+                    footer_links_title: "Foydali havolalar",
+                    footer_newsletter_title: "Yangiliklar",
+                    footer_newsletter_text: "Yangiliklarimizdan xabardor bo'lish uchun obuna bo'ling.",
+                    footer_copyright: "Yaratilgan: Ekologik jamoa tomonidan"
+                },
+                en: {
+                    nav_home: "Home",
+                    nav_about: "About",
+                    nav_mission: "Mission",
+                    nav_staff: "Staff",
+                    nav_projects: "Projects",
+                    nav_contact: "Contact",
+                    hero_title: "Protecting Our Future",
+                    hero_subtitle: "Innovative solutions for environmental protection and sustainable development",
+                    hero_btn_explore: "Explore Projects",
+                    hero_btn_contact: "Contact Us",
+                    about_title: "About Us",
+                    about_description: "EcoFuture is a leader in ecological solutions supporting environmental protection and sustainable development.",
+                    about_subtitle: "Who we are and what we do",
+                    about_text1: "Founded in 2015, EcoFuture works on projects aimed at environmental protection, sustainable development, and solving ecological problems.",
+                    about_text2: "Our team consists of ecologists, engineers, programmers, and social activists who work together to create new technologies and approaches.",
+                    about_text3: "Our mission is to help create a clean and healthy environment for future generations and develop ecological culture in society.",
+                    about_btn: "Collaborate",
+                    mission_title: "Our Mission",
+                    mission_description: "We are actively working in the following areas:",
+                    mission_card1_title: "Forest Conservation",
+                    mission_card1_text: "Preserving nature through forest restoration and planting new trees.",
+                    mission_card2_title: "Clean Water",
+                    mission_card2_text: "Cleaning water sources and promoting rational water use.",
+                    mission_card3_title: "Renewable Energy",
+                    mission_card3_text: "Using solar and wind energy to avoid environmental pollution.",
+                    mission_card4_title: "Recycling",
+                    mission_card4_text: "Creating a sustainable future by reducing waste and promoting recycling.",
+                    staff_title: "Our Team",
+                    staff_description: "Our team consists of talented specialists creating the future.",
+                    projects_title: "Our Projects",
+                    projects_description: "Get acquainted with our ecological projects implemented around the world.",
+                    project1_title: "Green Cities",
+                    project1_text: "A project to green and afforest areas around the city.",
+                    project2_title: "Solar Energy",
+                    project2_text: "A project to produce clean energy by installing solar panels.",
+                    project3_title: "Water Purification",
+                    project3_text: "A project to clean water sources from industrial waste and recycle them.",
+                    project_btn: "Details",
+                    contact_title: "Contact Us",
+                    contact_description: "If you have any questions or suggestions, please fill out the form below.",
+                    contact_address_title: "Address",
+                    contact_address: "123 Yunusabad Street, Tashkent City",
+                    contact_phone_title: "Phone",
+                    contact_phone: "+998 90 123 45 67",
+                    contact_email_title: "Email",
+                    contact_email: "info@ecofuture.uz",
+                    contact_hours_title: "Working Hours",
+                    contact_hours: "Monday-Friday: 9:00 - 18:00<br>Saturday: 10:00 - 15:00",
+                    contact_form_name: "Your Name",
+                    contact_form_email: "Your Email",
+                    contact_form_subject: "Subject",
+                    contact_form_message: "Message",
+                    contact_form_send: "Send",
+                    footer_about: "A leader in ecological solutions supporting environmental protection and sustainable development.",
+                    footer_links_title: "Useful Links",
+                    footer_newsletter_title: "Newsletter",
+                    footer_newsletter_text: "Subscribe to stay updated with our latest news.",
+                    footer_copyright: "Created by: Ecological Team"
+                },
+                ru: {
+                    nav_home: "Главная",
+                    nav_about: "О нас",
+                    nav_mission: "Миссия",
+                    nav_staff: "Сотрудники",
+                    nav_projects: "Проекты",
+                    nav_contact: "Контакты",
+                    hero_title: "Защита нашего будущего",
+                    hero_subtitle: "Инновационные решения для охраны окружающей среды и устойчивого развития",
+                    hero_btn_explore: "Посмотреть проекты",
+                    hero_btn_contact: "Связаться с нами",
+                    about_title: "О нас",
+                    about_description: "EcoFuture - лидер в области экологических решений, поддерживающих охрану окружающей среды и устойчивое развитие.",
+                    about_subtitle: "Кто мы и чем занимаемся",
+                    about_text1: "Основанная в 2015 году, EcoFuture работает над проектами, направленными на охрану окружающей среды, устойчивое развитие и решение экологических проблем.",
+                    about_text2: "Наша команда состоит из экологов, инженеров, программистов и общественных активистов, которые вместе создают новые технологии и подходы.",
+                    about_text3: "Наша миссия - помочь создать чистую и здоровую среду для будущих поколений и развивать экологическую культуру в обществе.",
+                    about_btn: "Сотрудничать",
+                    mission_title: "Наша миссия",
+                    mission_description: "Мы активно работаем в следующих направлениях:",
+                    mission_card1_title: "Охрана лесов",
+                    mission_card1_text: "Сохранение природы через восстановление лесов и посадку новых деревьев.",
+                    mission_card2_title: "Чистая вода",
+                    mission_card2_text: "Очистка источников воды и пропаганда рационального использования воды.",
+                    mission_card3_title: "Возобновляемая энергия",
+                    mission_card3_text: "Использование солнечной и ветровой энергии для предотвращения загрязнения окружающей среды.",
+                    mission_card4_title: "Переработка",
+                    mission_card4_text: "Создание устойчивого будущего путем сокращения отходов и поощрения переработки.",
+                    staff_title: "Наша команда",
+                    staff_description: "Наша команда состоит из талантливых специалистов, создающих будущее.",
+                    projects_title: "Наши проекты",
+                    projects_description: "Ознакомьтесь с нашими экологическими проектами, реализуемыми по всему миру.",
+                    project1_title: "Зеленые города",
+                    project1_text: "Проект по озеленению и лесопосадке территорий вокруг города.",
+                    project2_title: "Солнечная энергия",
+                    project2_text: "Проект по производству чистой энергии путем установки солнечных панелей.",
+                    project3_title: "Очистка воды",
+                    project3_text: "Проект по очистке источников воды от промышленных отходов и их переработке.",
+                    project_btn: "Подробнее",
+                    contact_title: "Свяжитесь с нами",
+                    contact_description: "Если у вас есть вопросы или предложения, пожалуйста, заполните форму ниже.",
+                    contact_address_title: "Адрес",
+                    contact_address: "г. Ташкент, ул. Юнусабад, 123",
+                    contact_phone_title: "Телефон",
+                    contact_phone: "+998 90 123 45 67",
+                    contact_email_title: "Email",
+                    contact_email: "info@ecofuture.uz",
+                    contact_hours_title: "Рабочие часы",
+                    contact_hours: "Пн-Пт: 9:00 - 18:00<br>Сб: 10:00 - 15:00",
+                    contact_form_name: "Ваше имя",
+                    contact_form_email: "Ваш email",
+                    contact_form_subject: "Тема",
+                    contact_form_message: "Сообщение",
+                    contact_form_send: "Отправить",
+                    footer_about: "Лидер в области экологических решений, поддерживающих охрану окружающей среды и устойчивое развитие.",
+                    footer_links_title: "Полезные ссылки",
+                    footer_newsletter_title: "Новостная рассылка",
+                    footer_newsletter_text: "Подпишитесь, чтобы быть в курсе наших последних новостей.",
+                    footer_copyright: "Создано: Экологической командой"
+                }
+            };
+            
+            // Set initial language based on browser settings or default to Uzbek
+            let currentLang = localStorage.getItem('language') || 'uz';
+            
+            // Set language buttons
+            document.querySelectorAll('.lang-btn').forEach(button => {
                 button.addEventListener('click', () => {
-                    const lang = button.getAttribute('data-lang');
-                    setLanguage(lang);
+                    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentLang = button.getAttribute('data-lang');
+                    localStorage.setItem('language', currentLang);
+                    applyLanguage(currentLang);
                 });
-            });
-            
-            // Chatbot functionality
-            setupChatbot();
-            
-            // Initialize AOS animations
-            initAnimations();
-        });
-        
-        function setLanguage(lang) {
-            // Update current language
-            currentLang = lang;
-            localStorage.setItem('ecoLang', lang);
-            
-            // Update active language button
-            langButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-            });
-            
-            // Update all translatable elements
-            translatableElements.forEach(element => {
-                const key = element.getAttribute('data-key');
-                if (translations[lang] && translations[lang][key]) {
-                    if (element.tagName === 'INPUT') {
-                        element.placeholder = translations[lang][key];
-                    } else {
-                        element.innerHTML = translations[lang][key];
-                    }
-                }
-            });
-            
-            // Update body class for font support
-            document.body.className = '';
-            if (lang === 'zh' || lang === 'ko') {
-                document.body.classList.add(lang);
-            }
-            
-            // Update chatbot messages with new language
-            updateChatbotLanguage();
-        }
-        
-        function updateChatbotLanguage() {
-            const messages = document.querySelectorAll('#chatbotMessages .message');
-            // We don't automatically translate existing messages to avoid confusion
-            // But we update the placeholder and any new messages will be in the new language
-            const input = document.getElementById('userInput');
-            if (input && translations[currentLang] && translations[currentLang]['chatbot_placeholder']) {
-                input.placeholder = translations[currentLang]['chatbot_placeholder'];
-            }
-        }
-        
-        function setupChatbot() {
-            const openChatbotBtn = document.getElementById('openChatbot');
-            const closeChatbotBtn = document.getElementById('closeChatbot');
-            const chatbotWindow = document.getElementById('chatbotWindow');
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            const userInput = document.getElementById('userInput');
-            const sendChatBtn = document.getElementById('sendChat');
-            
-            // Open chatbot
-            openChatbotBtn.addEventListener('click', () => {
-                chatbotWindow.classList.add('active');
-                openChatbotBtn.style.display = 'none';
-                userInput.focus();
                 
-                // Add welcome message if it's the first time
-                if (chatbotMessages.children.length === 1) {
-                    setTimeout(() => {
-                        addBotMessage(translations[currentLang]['chatbot_language'], false);
-                        
-                        // Add language options
-                        const langOptions = document.createElement('div');
-                        langOptions.className = 'message-options';
-                        ['uz', 'en', 'ru', 'ko', 'zh'].forEach(langCode => {
-                            const option = document.createElement('div');
-                            option.className = 'message-option';
-                            option.textContent = langCode.toUpperCase();
-                            option.addEventListener('click', () => {
-                                setLanguage(langCode);
-                                addBotMessage(translations[currentLang]['chatbot_welcome']);
-                                // Remove language options after selection
-                                if (langOptions.parentNode) {
-                                    langOptions.parentNode.removeChild(langOptions);
-                                }
-                            });
-                            langOptions.appendChild(option);
-                        });
-                        chatbotMessages.lastChild.appendChild(langOptions);
-                    }, 800);
+                if (button.getAttribute('data-lang') === currentLang) {
+                    button.classList.add('active');
                 }
             });
             
-            // Close chatbot
-            closeChatbotBtn.addEventListener('click', () => {
-                chatbotWindow.classList.remove('active');
-                openChatbotBtn.style.display = 'flex';
-            });
-            
-            // Send message on button click
-            sendChatBtn.addEventListener('click', sendMessage);
-            
-            // Send message on Enter key
-            userInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-            
-            // Auto-focus on chat window open
-            chatbotWindow.addEventListener('transitionend', () => {
-                if (chatbotWindow.classList.contains('active')) {
-                    userInput.focus();
-                }
-            });
-        }
-        
-        function sendMessage() {
-            const userInput = document.getElementById('userInput');
-            const userText = userInput.value.trim();
-            if (userText === '') return;
-            
-            // Add user message to chat
-            addUserMessage(userText);
-            userInput.value = '';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Process the message after a delay to simulate "thinking"
-            setTimeout(() => {
-                // Remove typing indicator
-                const typingIndicator = document.querySelector('.typing-indicator');
-                if (typingIndicator && typingIndicator.parentNode) {
-                    typingIndicator.parentNode.removeChild(typingIndicator);
-                }
-                
-                // Get bot response
-                getBotResponse(userText);
-            }, 1200);
-        }
-        
-        function addUserMessage(text) {
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message user';
-            messageDiv.textContent = text;
-            chatbotMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-        
-        function addBotMessage(text, showOptions = true) {
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot';
-            messageDiv.innerHTML = text;
-            
-            // Add language badge for non-default languages
-            if (currentLang !== 'uz') {
-                const badge = document.createElement('div');
-                badge.className = 'language-badge';
-                badge.textContent = currentLang.toUpperCase();
-                messageDiv.appendChild(badge);
-            }
-            
-            chatbotMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-        
-        function showTypingIndicator() {
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            const indicatorDiv = document.createElement('div');
-            indicatorDiv.className = 'message bot';
-            indicatorDiv.innerHTML = `
-                <div class="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            chatbotMessages.appendChild(indicatorDiv);
-            scrollToBottom();
-        }
-        
-        function scrollToBottom() {
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        }
-        
-        function getBotResponse(userMessage) {
-            const messageLower = userMessage.toLowerCase();
-            let responseKey = 'chatbot_response_default';
-            let options = [];
-            let actions = [];
-            
-            // Search knowledge base for matching keywords
-            const knowledgeBase = botKnowledgeBase[currentLang] || botKnowledgeBase['uz'];
-            
-            for (const item of knowledgeBase) {
-                if (item.keywords.some(keyword => messageLower.includes(keyword))) {
-                    responseKey = item.response;
-                    options = item.options || [];
-                    actions = item.actions || [];
-                    break;
-                }
-            }
-            
-            // Get response text from translations
-            const responseText = translations[currentLang][responseKey] || translations['uz'][responseKey] || translations['uz']['chatbot_response_default'];
-            
-            // Add bot message
-            addBotMessage(responseText);
-            
-            // Add options if available
-            if (options.length > 0) {
-                setTimeout(() => {
-                    const messageDiv = document.getElementById('chatbotMessages').lastChild;
-                    const optionsDiv = document.createElement('div');
-                    optionsDiv.className = 'message-options';
-                    
-                    options.forEach(optionKey => {
-                        const optionText = translations[currentLang][optionKey] || translations['uz'][optionKey];
-                        const option = document.createElement('div');
-                        option.className = 'message-option';
-                        option.textContent = optionText;
-                        
-                        // Find the corresponding action
-                        const actionIndex = options.indexOf(optionKey);
-                        if (actionIndex !== -1 && actions[actionIndex]) {
-                            const action = actions[actionIndex];
-                            option.addEventListener('click', () => {
-                                if (action.type === 'scroll') {
-                                    document.querySelector(action.link).scrollIntoView({ behavior: 'smooth' });
-                                } else if (action.type === 'link') {
-                                    window.location.href = action.link;
-                                }
-                                // Add confirmation message
-                                setTimeout(() => {
-                                    addBotMessage(translations[currentLang]['chatbot_response_thanks'] || translations['uz']['chatbot_response_thanks']);
-                                }, 500);
-                            });
+            // Apply language function
+            function applyLanguage(lang) {
+                document.querySelectorAll('[data-key]').forEach(element => {
+                    const key = element.getAttribute('data-key');
+                    if (translations[lang] && translations[lang][key]) {
+                        if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                            element.placeholder = translations[lang][key];
+                        } else if (element.innerHTML.includes('<br>')) {
+                            element.innerHTML = translations[lang][key];
+                        } else {
+                            element.textContent = translations[lang][key];
                         }
-                        
-                        optionsDiv.appendChild(option);
-                    });
-                    
-                    messageDiv.appendChild(optionsDiv);
-                    scrollToBottom();
-                }, 300);
-            }
-        }
-        
-        function initAnimations() {
-            // Simple AOS-like animation implementation
-            const animateElements = document.querySelectorAll('[data-aos]');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = 1;
-                        entry.target.style.transform = 'translateY(0)';
-                        observer.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.1 });
+            }
             
-            animateElements.forEach(element => {
-                element.style.opacity = 0;
-                element.style.transform = 'translateY(30px)';
-                element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-                observer.observe(element);
-            });
-        }
+            // Initialize with saved language
+            applyLanguage(currentLang);
+            
+            // Form submission handler
+            const contactForm = document.querySelector('.contact-form .btn');
+            if (contactForm) {
+                contactForm.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert(translations[currentLang].contact_form_send + '!');
+                    
+                    // Reset form
+                    document.getElementById('name').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('subject').value = '';
+                    document.getElementById('message').value = '';
+                });
+            }
+        });
     </script>
 </body>
 </html>
