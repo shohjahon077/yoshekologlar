@@ -1,1374 +1,4526 @@
-<!DOCTYPE html>
+// ========================================
+// GLOBAL VARIABLES
+// ========================================
+let scene, camera, renderer, controls;
+let currentSection = 'home';
+let isPanelOpen = false;
+let isMobile = false;
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let canJump = false;
+let joystickActive = false;
+let joystickData = { x: 0, y: 0 };
+let trees = [];
+let flowers = [];
+let grass = [];
+let birds = [];
+let clouds = [];
+let stars = [];
+let skyDome = null;
+let houses = [];
+let car = null;
+let audioContext = null;
+let sounds = {};
+let isAudioEnabled = true;
+
+// Movement speed - TEZROQ
+const MOVE_SPEED = 30.0;
+const JUMP_HEIGHT = 0.5;
+
+// Detect mobile
+function detectMobile() {
+    const toMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i
+    ];
+    
+    return toMatch.some((toMatchItem) => {
+        return navigator.userAgent.match(toMatchItem);
+    });
+}
+
+isMobile = detectMobile();
+
+// Section positions
+const sectionPositions = {
+    home: { x: 0, y: 2, z: 0 },
+    about: { x: -60, y: 2, z: 40 },
+    tips: { x: 60, y: 2, z: 40 },
+    projects: { x: 0, y: 2, z: -80 },
+    blog: { x: -50, y: 2, z: -60 },
+    news: { x: 50, y: 2, z: -60 }
+};
+
+// Section info
+const sectionInfo = {
+    home: {
+        title: "🌲 O'rmon Kirishi",
+        description: isMobile ? 
+            "Xush kelibsiz! Joystick bilan harakatlaning, pastdagi yashil tugmani bosing." : 
+            "Xush kelibsiz! Sichqonchani bosib harakatlang yoki tugmalardan foydalaning."
+    },
+    about: {
+        title: "🌊 Daryo Bo'yida",
+        description: "Bu yerda biz haqimizda ma'lumot topasiz. Suv tozaligi - hayot manbai."
+    },
+    tips: {
+        title: "💡 Ochiq Maydon",
+        description: "Kundalik hayotingizni yashillantirish uchun foydali maslahatlar."
+    },
+    projects: {
+        title: "🏔️ Tog' Yonbag'iri",
+        description: "Bizning muvaffaqiyatli ekologik loyihalarimiz."
+    },
+    blog: {
+        title: "📚 Kutubxona",
+        description: "Ekologik bilimlar va maqolalar to'plami."
+    },
+    news: {
+        title: "📰 Toshlar Maydoni",
+        description: "Eng so'nggi yangiliklar va tadbirlar."
+    }
+};
+
+// ========================================
+// AUDIO SETUP
+// ========================================
+function setupAudio() {
+    try {
+        // Initialize Web Audio API
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        
+        // Load sounds
+        sounds = {
+            ambient: document.getElementById('ambientSound'),
+            birds: document.getElementById('birdSound'),
+            wind: document.getElementById('windSound'),
+            water: document.getElementById('waterSound'),
+            car: document.getElementById('carSound'),
+            click: document.getElementById('clickSound')
+        };
+        
+        // Set volumes
+        sounds.ambient.volume = 0.3;
+        sounds.birds.volume = 0.4;
+        sounds.wind.volume = 0.2;
+        sounds.water.volume = 0.5;
+        sounds.car.volume = 0.6;
+        sounds.click.volume = 0.3;
+        
+        // Play ambient sounds
+        setTimeout(() => {
+            if (isAudioEnabled) {
+                sounds.ambient.play();
+                sounds.birds.play();
+                sounds.wind.play();
+            }
+        }, 1000);
+        
+        console.log('🎵 Audio tizimi ishga tushdi!');
+    } catch (e) {
+        console.log('⚠️ Audio qo\'llab-quvvatlanmaydi:', e);
+    }
+}
+
+// Play sound effect
+function playSound(name) {
+    if (!isAudioEnabled || !sounds[name]) return;
+    
+    try {
+        const sound = sounds[name];
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Audio error:', e));
+    } catch (e) {
+        console.log('Sound play error:', e);
+    }
+}
+
+// Toggle audio
+function toggleAudio() {
+    isAudioEnabled = !isAudioEnabled;
+    
+    const audioBtn = document.getElementById('audioToggle');
+    if (audioBtn) {
+        audioBtn.classList.toggle('muted', !isAudioEnabled);
+    }
+    
+    if (isAudioEnabled) {
+        sounds.ambient.play();
+        sounds.birds.play();
+        sounds.wind.play();
+    } else {
+        sounds.ambient.pause();
+        sounds.birds.pause();
+        sounds.wind.pause();
+    }
+}
+
+// ========================================
+// INITIALIZATION
+// ========================================
+function init() {
+    // Scene
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x88cc88, 100, 400);
+    
+    // Camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 1.8, 5);
+    
+    // Renderer - HIGH QUALITY
+    renderer = new THREE.WebGLRenderer({ 
+        canvas: document.getElementById('forest-canvas'),
+        antialias: true,
+        alpha: true,
+        logarithmicDepthBuffer: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    // Controls
+    controls = new THREE.PointerLockControls(camera, document.body);
+    
+    // Click to start (Desktop)
+    if (!isMobile) {
+        document.addEventListener('click', () => {
+            if (!controls.isLocked) {
+                controls.lock();
+            }
+        });
+    }
+    
+    scene.add(controls.getObject());
+    
+    // Setup audio first
+    setupAudio();
+    
+    // Lights - REALISTIC
+    addLights();
+    
+    // Sky - REALISTIC SKY DOME
+    createSkyDome();
+    
+    // Stars
+    createStars();
+    
+    // Clouds
+    createClouds();
+    
+    // Environment - REALISTIC
+    createEnvironment();
+    
+    // Houses for each section
+    createHouses();
+    
+    // Sections
+    createSections();
+    
+    // Events
+    addEventListeners();
+    
+    // Start
+    animate();
+    
+    // Update UI
+    updateSectionInfo();
+    
+    // Hide start button on mobile after init
+    if (isMobile) {
+        setTimeout(() => {
+            const startBtn = document.getElementById('startButton');
+            if (startBtn) {
+                startBtn.style.display = 'none';
+            }
+        }, 3000);
+    }
+}
+
+// ========================================
+// CREATE REALISTIC SKY DOME
+// ========================================
+function createSkyDome() {
+    // Sky gradient dome
+    const skyGeo = new THREE.SphereGeometry(1000, 64, 32);
+    const skyMat = new THREE.MeshPhongMaterial({
+        side: THREE.BackSide,
+        fog: false,
+        transparent: true,
+        opacity: 0.9
+    });
+    
+    // Create gradient texture for sky
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+    
+    // Create radial gradient (blue sky)
+    const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, canvas.width / 2
+    );
+    gradient.addColorStop(0, '#87CEEB'); // Light blue (zenith)
+    gradient.addColorStop(0.6, '#4682B4'); // Medium blue
+    gradient.addColorStop(1, '#1E90FF'); // Deep blue (horizon)
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add some clouds to sky texture
+    for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.2 + 0.1})`;
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.6 + canvas.height * 0.2;
+        const size = Math.random() * 100 + 50;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    const skyTexture = new THREE.CanvasTexture(canvas);
+    skyMat.map = skyTexture;
+    
+    skyDome = new THREE.Mesh(skyGeo, skyMat);
+    scene.add(skyDome);
+}
+
+// ========================================
+// CREATE STARS
+// ========================================
+function createStars() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starMaterial = new THREE.PointsMaterial({
+        color: 0xFFFFFF,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: true
+    });
+    
+    const starVertices = [];
+    for (let i = 0; i < 5000; i++) {
+        const x = (Math.random() - 0.5) * 2000;
+        const y = Math.random() * 1000 + 100;
+        const z = (Math.random() - 0.5) * 2000;
+        starVertices.push(x, y, z);
+    }
+    
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+}
+
+// ========================================
+// CREATE CLOUDS
+// ========================================
+function createClouds() {
+    for (let i = 0; i < 30; i++) {
+        const cloudSize = 15 + Math.random() * 10;
+        
+        // Create cloud cluster
+        const cloudGroup = new THREE.Group();
+        
+        // Multiple spheres for fluffy cloud effect
+        for (let j = 0; j < 8; j++) {
+            const sphereGeo = new THREE.SphereGeometry(3 + Math.random() * 2, 16, 16);
+            const sphereMat = new THREE.MeshPhongMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.8 - Math.random() * 0.3,
+                shininess: 20
+            });
+            const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+            
+            // Random position within cloud cluster
+            sphere.position.set(
+                (Math.random() - 0.5) * cloudSize,
+                (Math.random() - 0.5) * cloudSize * 0.5,
+                (Math.random() - 0.5) * cloudSize
+            );
+            
+            sphere.castShadow = true;
+            cloudGroup.add(sphere);
+        }
+        
+        // Position cloud in sky
+        const distance = 150 + Math.random() * 200;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * distance;
+        const z = Math.sin(angle) * distance;
+        const y = 80 + Math.random() * 40;
+        
+        cloudGroup.position.set(x, y, z);
+        cloudGroup.scale.set(1 + Math.random(), 1 + Math.random(), 1 + Math.random());
+        
+        scene.add(cloudGroup);
+        clouds.push({
+            mesh: cloudGroup,
+            speed: 0.002 + Math.random() * 0.003,
+            direction: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+// ========================================
+// ADD LIGHTS (Realistic - ENHANCED)
+// ========================================
+function addLights() {
+    // Ambient light (soft)
+    const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambient);
+    
+    // Directional light (Sun - realistic)
+    const sun = new THREE.DirectionalLight(0xffeecc, 1.5);
+    sun.position.set(100, 150, 100);
+    sun.castShadow = true;
+    
+    // Enhanced shadow settings for realism
+    sun.shadow.mapSize.width = 4096;
+    sun.shadow.mapSize.height = 4096;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 1000;
+    sun.shadow.camera.left = -200;
+    sun.shadow.camera.right = 200;
+    sun.shadow.camera.top = 200;
+    sun.shadow.camera.bottom = -200;
+    sun.shadow.bias = -0.0001;
+    sun.shadow.normalBias = 0.01;
+    
+    scene.add(sun);
+    
+    // Hemisphere light (sky/ground) - ENHANCED
+    const hemi = new THREE.HemisphereLight(0x88ccff, 0x448822, 0.8);
+    scene.add(hemi);
+    
+    // Additional fill lights for realism
+    const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight1.position.set(-80, 60, 60);
+    fillLight1.castShadow = true;
+    scene.add(fillLight1);
+    
+    const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight2.position.set(80, 60, -60);
+    fillLight2.castShadow = true;
+    scene.add(fillLight2);
+    
+    // Warm fill light (sunset effect)
+    const warmLight = new THREE.DirectionalLight(0xffaa66, 0.3);
+    warmLight.position.set(50, 40, -50);
+    scene.add(warmLight);
+}
+
+// ========================================
+// CREATE ENVIRONMENT (Realistic - ENHANCED)
+// ========================================
+function createEnvironment() {
+    // Ground with realistic texture
+    const groundGeo = new THREE.PlaneGeometry(800, 800, 200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ 
+        color: 0x6B8E23,
+        roughness: 1,
+        metalness: 0,
+        bumpScale: 0.1
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.1;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    
+    // Add detailed grass patches
+    generateDetailedGrass(500);
+    
+    // Trees (Realistic - ENHANCED)
+    generateRealisticTrees(200);
+    
+    // Flowers (More variety)
+    generateFlowers(150);
+    
+    // Rocks (More realistic)
+    generateRealisticRocks(80);
+    
+    // Water (River - ENHANCED)
+    createRealisticWater();
+    
+    // Birds (More realistic)
+    generateRealisticBirds(30);
+}
+
+// ========================================
+// GENERATE DETAILED GRASS
+// ========================================
+function generateDetailedGrass(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 180 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        // Create multiple grass blades in cluster
+        const clusterSize = 3 + Math.floor(Math.random() * 3);
+        
+        for (let j = 0; j < clusterSize; j++) {
+            const bladeHeight = 0.4 + Math.random() * 0.8;
+            const bladeGeo = new THREE.CylinderGeometry(0.02, 0.08, bladeHeight, 6, 1, true);
+            const bladeMat = new THREE.MeshStandardMaterial({ 
+                color: j === 0 ? 0x4A7A3C : 0x558833,
+                roughness: 1,
+                flatShading: true
+            });
+            const blade = new THREE.Mesh(bladeGeo, bladeMat);
+            blade.position.set(
+                x + (Math.random() - 0.5) * 0.5,
+                bladeHeight / 2,
+                z + (Math.random() - 0.5) * 0.5
+            );
+            blade.rotation.y = Math.random() * Math.PI;
+            blade.rotation.z = (Math.random() - 0.5) * 0.2;
+            blade.castShadow = true;
+            scene.add(blade);
+            
+            grass.push(blade);
+        }
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC TREES (ENHANCED)
+// ========================================
+function generateRealisticTrees(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 200 + 20;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        const height = 10 + Math.random() * 15;
+        const scale = 0.8 + Math.random() * 0.7;
+        
+        // Trunk with bark texture simulation
+        const trunkGeo = new THREE.CylinderGeometry(1.2, 1.8, height, 12);
+        const trunkMat = new THREE.MeshStandardMaterial({ 
+            color: 0x5D4037,
+            roughness: 1,
+            metalness: 0
+        });
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.set(x, height / 2 - 0.1, z);
+        trunk.scale.set(scale, scale, scale);
+        trunk.castShadow = true;
+        trunk.receiveShadow = true;
+        scene.add(trunk);
+        
+        // Multiple foliage layers with variation
+        const foliageLayers = 4 + Math.floor(Math.random() * 3);
+        
+        for (let layer = 0; layer < foliageLayers; layer++) {
+            const layerHeight = height * 0.25 + (layer * height * 0.2);
+            const layerScale = 1 - (layer * 0.15);
+            
+            const foliageGeo = new THREE.ConeGeometry(6 * layerScale, height * 0.5 * layerScale, 12);
+            const foliageMat = new THREE.MeshStandardMaterial({ 
+                color: layer === 0 ? 0x1B5E20 : (layer === 1 ? 0x2E7D32 : 0x388E3C),
+                roughness: 1,
+                metalness: 0,
+                transparent: true,
+                opacity: 0.95
+            });
+            const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+            foliage.position.set(
+                x + (Math.random() - 0.5) * 0.5,
+                layerHeight + height * 0.1 - 0.1,
+                z + (Math.random() - 0.5) * 0.5
+            );
+            foliage.scale.set(scale * layerScale, scale * layerScale * 0.8, scale * layerScale);
+            foliage.rotation.y = Math.random() * Math.PI;
+            foliage.castShadow = true;
+            scene.add(foliage);
+        }
+        
+        // Add some moss on trunk bottom
+        if (Math.random() > 0.5) {
+            const mossGeo = new THREE.SphereGeometry(1.5, 16, 16);
+            const mossMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4A7A3C,
+                roughness: 1
+            });
+            const moss = new THREE.Mesh(mossGeo, mossMat);
+            moss.position.set(x, height * 0.1, z);
+            moss.scale.set(scale * 0.8, scale * 0.3, scale * 0.8);
+            moss.castShadow = true;
+            scene.add(moss);
+        }
+        
+        trees.push({ trunk, position: { x, z } });
+    }
+}
+
+// ========================================
+// GENERATE FLOWERS (ENHANCED)
+// ========================================
+function generateFlowers(count) {
+    const flowerTypes = [
+        { color: 0xFF69B4, name: 'Rose' },      // Pink
+        { color: 0xFF1493, name: 'Carnation' }, // Deep Pink
+        { color: 0x9370DB, name: 'Lavender' },  // Purple
+        { color: 0x8A2BE2, name: 'Violet' },    // Blue Violet
+        { color: 0x4169E1, name: 'Bluebell' },  // Royal Blue
+        { color: 0xFFD700, name: 'Sunflower' }, // Gold
+        { color: 0xFF4500, name: 'Poppy' }      // Orange Red
+    ];
+    
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 140 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+        
+        // Flower stem with leaves
+        const stemGeo = new THREE.CylinderGeometry(0.06, 0.1, 0.6, 8);
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x3A5F0B });
+        const stem = new THREE.Mesh(stemGeo, stemMat);
+        stem.position.set(x, 0.4, z);
+        stem.castShadow = true;
+        scene.add(stem);
+        
+        // Add leaves
+        for (let j = 0; j < 2 + Math.floor(Math.random() * 2); j++) {
+            const leafGeo = new THREE.SphereGeometry(0.2, 16, 16);
+            const leafMat = new THREE.MeshStandardMaterial({ 
+                color: 0x2D5016,
+                transparent: true,
+                opacity: 0.9
+            });
+            const leaf = new THREE.Mesh(leafGeo, leafMat);
+            leaf.position.set(
+                x + (Math.random() - 0.5) * 0.3,
+                0.3 + j * 0.2,
+                z + (Math.random() - 0.5) * 0.3
+            );
+            leaf.scale.set(0.8, 0.3, 1.2);
+            leaf.rotation.y = Math.random() * Math.PI;
+            leaf.castShadow = true;
+            scene.add(leaf);
+        }
+        
+        // Flower head with petals
+        const headGeo = new THREE.SphereGeometry(0.25, 32, 32);
+        const headMat = new THREE.MeshStandardMaterial({ 
+            color: type.color,
+            roughness: 0.5,
+            metalness: 0.2
+        });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.set(x, 0.85, z);
+        head.castShadow = true;
+        scene.add(head);
+        
+        flowers.push({ stem, head });
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC ROCKS
+// ========================================
+function generateRealisticRocks(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 160 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        // Create irregular rock shape
+        const rockGeo = new THREE.DodecahedronGeometry(2.5 + Math.random() * 3, 2);
+        const rockMat = new THREE.MeshStandardMaterial({ 
+            color: 0x777777,
+            roughness: 1,
+            metalness: 0.1
+        });
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.position.set(x, 1.8 + Math.random() * 3, z);
+        rock.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+        );
+        rock.scale.set(
+            0.8 + Math.random() * 0.6,
+            0.8 + Math.random() * 0.6,
+            0.8 + Math.random() * 0.6
+        );
+        rock.castShadow = true;
+        rock.receiveShadow = true;
+        scene.add(rock);
+        
+        // Add moss on some rocks
+        if (Math.random() > 0.6) {
+            const mossGeo = new THREE.SphereGeometry(1 + Math.random(), 16, 16);
+            const mossMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4A7A3C,
+                roughness: 1,
+                transparent: true,
+                opacity: 0.7
+            });
+            const moss = new THREE.Mesh(mossGeo, mossMat);
+            moss.position.set(
+                x + (Math.random() - 0.5) * 1.5,
+                rock.position.y + 1 + Math.random(),
+                z + (Math.random() - 0.5) * 1.5
+            );
+            moss.scale.set(1.5, 0.5, 1.5);
+            scene.add(moss);
+        }
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC BIRDS
+// ========================================
+function generateRealisticBirds(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 120 + 20;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        const y = 15 + Math.random() * 30;
+        
+        // Create bird with wings
+        const birdGroup = new THREE.Group();
+        
+        // Body
+        const bodyGeo = new THREE.SphereGeometry(0.3, 16, 16);
+        const bodyMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4682B4,
+            roughness: 0.7
+        });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        birdGroup.add(body);
+        
+        // Wings
+        const wingGeo = new THREE.ConeGeometry(0.1, 0.8, 8);
+        const wingMat = new THREE.MeshStandardMaterial({ 
+            color: 0x2F4F4F,
+            roughness: 0.8
+        });
+        
+        const leftWing = new THREE.Mesh(wingGeo, wingMat);
+        leftWing.position.set(-0.4, 0, 0);
+        leftWing.rotation.z = -Math.PI / 4;
+        birdGroup.add(leftWing);
+        
+        const rightWing = new THREE.Mesh(wingGeo, wingMat);
+        rightWing.position.set(0.4, 0, 0);
+        rightWing.rotation.z = Math.PI / 4;
+        birdGroup.add(rightWing);
+        
+        // Tail
+        const tailGeo = new THREE.ConeGeometry(0.08, 0.4, 8);
+        const tailMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4682B4,
+            roughness: 0.7
+        });
+        const tail = new THREE.Mesh(tailGeo, tailMat);
+        tail.position.set(0, -0.2, -0.3);
+        tail.rotation.x = Math.PI / 3;
+        birdGroup.add(tail);
+        
+        birdGroup.position.set(x, y, z);
+        birdGroup.rotation.z = Math.PI / 2;
+        birdGroup.rotation.y = Math.random() * Math.PI;
+        scene.add(birdGroup);
+        
+        birds.push({
+            mesh: birdGroup,
+            leftWing: leftWing,
+            rightWing: rightWing,
+            speed: 0.01 + Math.random() * 0.03,
+            angle: Math.random() * Math.PI * 2,
+            radius: 20 + Math.random() * 15,
+            height: y,
+            center: { x: x, z: z },
+            wingAngle: 0
+        });
+    }
+}
+
+// ========================================
+// CREATE REALISTIC WATER
+// ========================================
+function createRealisticWater() {
+    const waterGeo = new THREE.PlaneGeometry(120, 400, 128, 128);
+    const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x4682B4,
+        roughness: 0.1,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.8,
+        envMap: createWaterReflection()
+    });
+    const water = new THREE.Mesh(waterGeo, waterMat);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(-60, 0.1, 40);
+    water.receiveShadow = true;
+    scene.add(water);
+    
+    // Play water sound near river
+    playSound('water');
+}
+
+function createWaterReflection() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Create water reflection gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+    gradient.addColorStop(0, '#87CEEB');
+    gradient.addColorStop(0.5, '#4682B4');
+    gradient.addColorStop(1, '#1E90FF');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // Add wave patterns
+    for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1})`;
+        const y = Math.random() * 512;
+        const height = Math.random() * 20 + 5;
+        ctx.fillRect(0, y, 512, height);
+    }
+    
+    return new THREE.CanvasTexture(canvas);
+}
+
+// ========================================
+// CREATE HOUSES FOR EACH SECTION
+// ========================================
+function createHouses() {
+    // House for "About" section (Wooden house by river)
+    createHouse(sectionPositions.about, {
+        type: 'wooden',
+        color: 0x8B4513,
+        size: 1.5,
+        hasChimney: true,
+        hasWindows: true
+    });
+    
+    // House for "Tips" section (Modern eco-house)
+    createHouse(sectionPositions.tips, {
+        type: 'modern',
+        color: 0x3498DB,
+        size: 1.3,
+        hasSolarPanels: true,
+        hasGarden: true
+    });
+    
+    // House for "Projects" section (Mountain cabin)
+    createHouse(sectionPositions.projects, {
+        type: 'cabin',
+        color: 0x5D4037,
+        size: 1.4,
+        hasFireplace: true,
+        hasPorch: true
+    });
+    
+    // House for "Blog" section (Library house)
+    createHouse(sectionPositions.blog, {
+        type: 'library',
+        color: 0x2C3E50,
+        size: 1.6,
+        hasBooks: true,
+        hasLargeWindows: true
+    });
+    
+    // House for "News" section (Stone house)
+    createHouse(sectionPositions.news, {
+        type: 'stone',
+        color: 0x777777,
+        size: 1.5,
+        hasTower: true,
+        hasBalcony: true
+    });
+}
+
+function createHouse(position, config) {
+    const houseGroup = new THREE.Group();
+    
+    // Main house structure
+    const houseGeo = new THREE.BoxGeometry(10 * config.size, 8 * config.size, 10 * config.size);
+    const houseMat = new THREE.MeshStandardMaterial({ 
+        color: config.color,
+        roughness: 0.8
+    });
+    const house = new THREE.Mesh(houseGeo, houseMat);
+    house.position.y = 4 * config.size;
+    house.castShadow = true;
+    house.receiveShadow = true;
+    houseGroup.add(house);
+    
+    // Roof
+    const roofGeo = new THREE.ConeGeometry(7 * config.size, 4 * config.size, 4);
+    const roofMat = new THREE.MeshStandardMaterial({ 
+        color: 0xA52A2A,
+        roughness: 0.9
+    });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = 8 * config.size + 2 * config.size;
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    houseGroup.add(roof);
+    
+    // Door
+    const doorGeo = new THREE.BoxGeometry(2 * config.size, 4 * config.size, 0.5 * config.size);
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+    const door = new THREE.Mesh(doorGeo, doorMat);
+    door.position.set(0, 2 * config.size, 5 * config.size + 0.1);
+    door.castShadow = true;
+    houseGroup.add(door);
+    
+    // Windows
+    if (config.hasWindows) {
+        const windowGeo = new THREE.BoxGeometry(2 * config.size, 2 * config.size, 0.3 * config.size);
+        const windowMat = new THREE.MeshStandardMaterial({ 
+            color: 0x87CEEB,
+            transparent: true,
+            opacity: 0.7
+        });
+        
+        // Front windows
+        const window1 = new THREE.Mesh(windowGeo, windowMat);
+        window1.position.set(-3 * config.size, 3 * config.size, 5 * config.size + 0.1);
+        houseGroup.add(window1);
+        
+        const window2 = new THREE.Mesh(windowGeo, windowMat);
+        window2.position.set(3 * config.size, 3 * config.size, 5 * config.size + 0.1);
+        houseGroup.add(window2);
+        
+        // Side windows
+        const window3 = new THREE.Mesh(windowGeo, windowMat);
+        window3.position.set(5 * config.size + 0.1, 3 * config.size, -3 * config.size);
+        window3.rotation.y = Math.PI / 2;
+        houseGroup.add(window3);
+        
+        const window4 = new THREE.Mesh(windowGeo, windowMat);
+        window4.position.set(5 * config.size + 0.1, 3 * config.size, 3 * config.size);
+        window4.rotation.y = Math.PI / 2;
+        houseGroup.add(window4);
+    }
+    
+    // Chimney
+    if (config.hasChimney) {
+        const chimneyGeo = new THREE.CylinderGeometry(0.8 * config.size, 0.8 * config.size, 3 * config.size, 8);
+        const chimneyMat = new THREE.MeshStandardMaterial({ color: 0x696969 });
+        const chimney = new THREE.Mesh(chimneyGeo, chimneyMat);
+        chimney.position.set(-3 * config.size, 8 * config.size + 1.5 * config.size, -3 * config.size);
+        chimney.castShadow = true;
+        houseGroup.add(chimney);
+    }
+    
+    // Solar panels
+    if (config.hasSolarPanels) {
+        const panelGeo = new THREE.BoxGeometry(8 * config.size, 0.3 * config.size, 4 * config.size);
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const panel = new THREE.Mesh(panelGeo, panelMat);
+        panel.position.set(0, 8 * config.size + 2.5 * config.size, 0);
+        panel.rotation.x = Math.PI / 6;
+        panel.castShadow = true;
+        houseGroup.add(panel);
+    }
+    
+    // Position house
+    houseGroup.position.set(position.x, position.y, position.z);
+    scene.add(houseGroup);
+    
+    houses.push({
+        mesh: houseGroup,
+        type: config.type,
+        position: position
+    });
+}
+
+// ========================================
+// CREATE SECTIONS
+// ========================================
+function createSections() {
+    Object.keys(sectionPositions).forEach(section => {
+        const pos = sectionPositions[section];
+        
+        // Marker with enhanced glow
+        const markerGeo = new THREE.SphereGeometry(3, 64, 64);
+        const markerMat = new THREE.MeshStandardMaterial({
+            color: 0x2ecc71,
+            emissive: 0x22aa44,
+            emissiveIntensity: 0.8,
+            transparent: true,
+            opacity: 0.9
+        });
+        const marker = new THREE.Mesh(markerGeo, markerMat);
+        marker.position.set(pos.x, pos.y + 3, pos.z);
+        marker.userData = { section };
+        scene.add(marker);
+        
+        // Add section name plate
+        const plateGeo = new THREE.PlaneGeometry(15, 4);
+        const plateMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide
+        });
+        const plate = new THREE.Mesh(plateGeo, plateMat);
+        plate.position.set(pos.x, pos.y + 5, pos.z);
+        plate.rotation.y = Math.PI;
+        scene.add(plate);
+    });
+}
+
+// ========================================
+// SMOOTH MOVE TO SECTION WITH CAR ANIMATION
+// ========================================
+function moveToSection(sectionName) {
+    if (!sectionPositions[sectionName] || currentSection === sectionName) return;
+    
+    const target = sectionPositions[sectionName];
+    const destinationName = sectionInfo[sectionName].title;
+    
+    // Update destination info in loading overlay
+    const destInfo = document.getElementById('destinationInfo');
+    if (destInfo) {
+        destInfo.textContent = `${destinationName}ga borilyapti...`;
+    }
+    
+    // Show loading overlay with car animation
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('active');
+    }
+    
+    // Play car sound
+    playSound('car');
+    
+    // Unlock controls during transition
+    if (controls.isLocked) {
+        controls.unlock();
+    }
+    
+    // Wait for car animation to complete (4 seconds)
+    setTimeout(() => {
+        // Smooth camera movement with path
+        const duration = 2;
+        
+        gsap.to(camera.position, {
+            x: target.x,
+            y: target.y + 1.8,
+            z: target.z + 10,
+            duration: duration,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                camera.lookAt(target.x, target.y, target.z);
+            },
+            onComplete: () => {
+                currentSection = sectionName;
+                updateSectionInfo();
+                
+                // Hide loading overlay
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('active');
+                }
+                
+                // Lock controls again on desktop
+                if (!isMobile) {
+                    setTimeout(() => {
+                        controls.lock();
+                    }, 500);
+                }
+                
+                // Play arrival sound
+                playSound('click');
+            }
+        });
+    }, 4000); // Wait for car animation
+}
+
+// ========================================
+// UPDATE SECTION INFO
+// ========================================
+function updateSectionInfo() {
+    const info = sectionInfo[currentSection];
+    document.getElementById('sectionTitle').textContent = info.title;
+    document.getElementById('sectionDescription').textContent = info.description;
+}
+
+// ========================================
+// OPEN CONTENT PANEL
+// ========================================
+function openContentPanel() {
+    if (currentSection === 'home') return;
+    
+    const panel = document.getElementById('contentPanel');
+    const body = document.getElementById('contentBody');
+    const title = document.getElementById('panelTitle');
+    
+    // Set content
+    let content = '';
+    let titleText = '';
+    
+    switch(currentSection) {
+        case 'about':
+            content = document.getElementById('aboutContent').innerHTML;
+            titleText = '🌊 Biz Haqimizda';
+            break;
+        case 'tips':
+            content = document.getElementById('tipsContent').innerHTML;
+            titleText = '💡 Yashil Maslahatlar';
+            break;
+        case 'projects':
+            content = document.getElementById('projectsContent').innerHTML;
+            titleText = '🏔️ Loyihalar';
+            break;
+        case 'blog':
+            content = document.getElementById('blogContent').innerHTML;
+            titleText = '📚 Blog';
+            break;
+        case 'news':
+            content = document.getElementById('newsContent').innerHTML;
+            titleText = '📰 Yangiliklar';
+            break;
+    }
+    
+    body.innerHTML = content;
+    title.textContent = titleText;
+    
+    panel.classList.add('active');
+    isPanelOpen = true;
+    
+    // Unlock controls
+    if (controls.isLocked) {
+        controls.unlock();
+    }
+    
+    // Play click sound
+    playSound('click');
+}
+
+// ========================================
+// CLOSE CONTENT PANEL
+// ========================================
+function closeContentPanel() {
+    document.getElementById('contentPanel').classList.remove('active');
+    isPanelOpen = false;
+    
+    // Lock controls on desktop
+    if (!isMobile && !controls.isLocked) {
+        setTimeout(() => {
+            controls.lock();
+        }, 500);
+    }
+    
+    // Play click sound
+    playSound('click');
+}
+
+// ========================================
+// SETUP JOYSTICK (Mobile) - FIXED
+// ========================================
+function setupJoystick() {
+    const joystickContainer = document.getElementById('joystickContainer');
+    const joystickThumb = document.querySelector('.joystick-thumb');
+    
+    if (!joystickContainer || !joystickThumb) return;
+    
+    const baseRect = joystickContainer.getBoundingClientRect();
+    const baseCenter = {
+        x: baseRect.left + baseRect.width / 2,
+        y: baseRect.top + baseRect.height / 2
+    };
+    const maxDistance = baseRect.width / 2 - 25;
+    
+    let isDragging = false;
+    
+    function handleTouchStart(e) {
+        e.preventDefault();
+        isDragging = true;
+        joystickActive = true;
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const dx = touch.clientX - baseCenter.x;
+        const dy = touch.clientY - baseCenter.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > maxDistance) {
+            const angle = Math.atan2(dy, dx);
+            joystickData.x = Math.cos(angle);
+            joystickData.y = Math.sin(angle);
+            
+            const limitedX = Math.cos(angle) * maxDistance;
+            const limitedY = Math.sin(angle) * maxDistance;
+            joystickThumb.style.transform = `translate(calc(-50% + ${limitedX}px), calc(-50% + ${limitedY}px))`;
+        } else {
+            joystickData.x = dx / maxDistance;
+            joystickData.y = dy / maxDistance;
+            
+            joystickThumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        }
+    }
+    
+    function handleTouchEnd() {
+        isDragging = false;
+        joystickActive = false;
+        joystickData.x = 0;
+        joystickData.y = 0;
+        joystickThumb.style.transform = 'translate(-50%, -50%)';
+        document.body.style.overflow = 'auto';
+    }
+    
+    joystickContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    joystickContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    joystickContainer.addEventListener('touchend', handleTouchEnd);
+    joystickContainer.addEventListener('touchcancel', handleTouchEnd);
+}
+
+// ========================================
+// ADD EVENT LISTENERS - FIXED FOR MOBILE
+// ========================================
+function addEventListeners() {
+    // Desktop nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const section = e.currentTarget.dataset.section;
+            moveToSection(section);
+        });
+    });
+    
+    // Mobile nav toggle
+    const mobileNavToggle = document.getElementById('mobileNavToggle');
+    const mobileNavMenu = document.getElementById('mobileNavMenu');
+    
+    if (mobileNavToggle && mobileNavMenu) {
+        mobileNavToggle.addEventListener('click', () => {
+            mobileNavMenu.classList.toggle('active');
+        });
+        
+        // Mobile nav items
+        document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const section = e.currentTarget.dataset.section;
+                moveToSection(section);
+                mobileNavMenu.classList.remove('active');
+            });
+        });
+    }
+    
+    // Action button (Mobile) - FIXED
+    const mobileActionButton = document.getElementById('mobileActionButton');
+    if (mobileActionButton) {
+        mobileActionButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            openContentPanel();
+        });
+        
+        // Also add touch event for better mobile support
+        mobileActionButton.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            openContentPanel();
+        });
+    }
+    
+    // Read button (Desktop)
+    const desktopReadButton = document.getElementById('desktopReadButton');
+    if (desktopReadButton) {
+        desktopReadButton.addEventListener('click', openContentPanel);
+    }
+    
+    // Close panel
+    const closePanel = document.getElementById('closePanel');
+    if (closePanel) {
+        closePanel.addEventListener('click', closeContentPanel);
+    }
+    
+    // Start button (Mobile)
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startButton.style.display = 'none';
+            alert('🎮 O\'rmonni o\'rganishni boshladik!\n\n• Joystick bilan harakatlaning\n• Pastdagi yashil tugma - O\'qish\n• Pastdagi kompas - Bo\'limlar');
+        });
+    }
+    
+    // Audio toggle button
+    const audioToggle = document.getElementById('audioToggle');
+    if (audioToggle) {
+        audioToggle.addEventListener('click', toggleAudio);
+    }
+    
+    // Keyboard (Desktop)
+    if (!isMobile) {
+        document.addEventListener('keydown', (e) => {
+            if (isPanelOpen) return;
+            
+            switch(e.key.toLowerCase()) {
+                case 'escape':
+                    if (controls.isLocked) {
+                        controls.unlock();
+                    }
+                    break;
+                case 'e':
+                    openContentPanel();
+                    break;
+                case 'w':
+                    moveForward = true;
+                    break;
+                case 's':
+                    moveBackward = true;
+                    break;
+                case 'a':
+                    moveLeft = true;
+                    break;
+                case 'd':
+                    moveRight = true;
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w':
+                    moveForward = false;
+                    break;
+                case 's':
+                    moveBackward = false;
+                    break;
+                case 'a':
+                    moveLeft = false;
+                    break;
+                case 'd':
+                    moveRight = false;
+                    break;
+            }
+        });
+    }
+    
+    // Window resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // Setup joystick on mobile
+    if (isMobile) {
+        setupJoystick();
+    }
+}
+
+// ========================================
+// ANIMATE - ENHANCED
+// ========================================
+let prevTime = performance.now();
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const time = performance.now();
+    const delta = (time - prevTime) * 0.001;
+    
+    // Animate grass with wind (more realistic)
+    grass.forEach((blade, index) => {
+        const windStrength = 0.15;
+        const windSpeed = 0.003;
+        blade.rotation.z = Math.sin(time * windSpeed + index * 0.1) * windStrength;
+        blade.rotation.x = Math.sin(time * windSpeed * 0.7 + index * 0.05) * windStrength * 0.5;
+    });
+    
+    // Animate flowers with wind
+    flowers.forEach((flower, index) => {
+        const windStrength = 0.1;
+        const windSpeed = 0.002;
+        flower.stem.rotation.x = Math.sin(time * windSpeed + index * 0.1) * windStrength;
+        flower.head.position.y = 0.85 + Math.sin(time * windSpeed * 1.5 + index * 0.2) * windStrength * 0.3;
+    });
+    
+    // Animate birds with wing flapping
+    birds.forEach(bird => {
+        bird.angle += bird.speed;
+        const x = bird.center.x + Math.cos(bird.angle) * bird.radius;
+        const z = bird.center.z + Math.sin(bird.angle) * bird.radius;
+        const y = bird.height + Math.sin(bird.angle * 2) * 3;
+        
+        bird.mesh.position.set(x, y, z);
+        bird.mesh.rotation.y = Math.PI + Math.cos(bird.angle * 0.5);
+        
+        // Wing flapping animation
+        bird.wingAngle += 0.2;
+        const wingFlap = Math.sin(bird.wingAngle) * 0.5;
+        bird.leftWing.rotation.z = -Math.PI / 4 + wingFlap;
+        bird.rightWing.rotation.z = Math.PI / 4 - wingFlap;
+    });
+    
+    // Animate clouds
+    clouds.forEach(cloud => {
+        cloud.mesh.position.x += Math.cos(cloud.direction) * cloud.speed;
+        cloud.mesh.position.z += Math.sin(cloud.direction) * cloud.speed;
+        
+        // Wrap clouds around
+        if (cloud.mesh.position.x > 300) cloud.mesh.position.x = -300;
+        if (cloud.mesh.position.x < -300) cloud.mesh.position.x = 300;
+        if (cloud.mesh.position.z > 300) cloud.mesh.position.z = -300;
+        if (cloud.mesh.position.z < -300) cloud.mesh.position.z = 300;
+    });
+    
+    // Player movement - TEZROQ
+    if ((controls.isLocked && !isMobile) || (isMobile && joystickActive)) {
+        velocity.x -= velocity.x * 10.0 * delta;
+        velocity.z -= velocity.z * 10.0 * delta;
+        
+        if (!isMobile) {
+            // Desktop controls
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+        } else {
+            // Mobile joystick controls
+            direction.z = -joystickData.y;
+            direction.x = joystickData.x;
+        }
+        
+        direction.normalize();
+        
+        if (Math.abs(direction.z) > 0.1 || Math.abs(direction.x) > 0.1) {
+            velocity.z -= direction.z * MOVE_SPEED * delta;  // TEZROQ
+            velocity.x -= direction.x * MOVE_SPEED * delta;  // TEZROQ
+            
+            controls.moveRight(-velocity.x * delta);
+            controls.moveForward(-velocity.z * delta);
+        }
+    }
+    
+    prevTime = time;
+    
+    renderer.render(scene, camera);
+}
+
+// ========================================
+// PRELOADER
+// ========================================
+window.addEventListener('load', () => {
+    const preloader = document.querySelector('.preloader');
+    const progress = document.querySelector('.loading-progress');
+    
+    let p = 0;
+    const interval = setInterval(() => {
+        p += 2;
+        progress.style.width = `${p}%`;
+        
+        if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                init();
+            }, 500);
+        }
+    }, 40);
+});
+
+console.log('🌲 Yosh Ekologlar - 3D O\'rmon Sayohati');
+console.log('🚗 Mashina animatsiyasi, 🏠 Haqiqiy uylar, 🎵 Ovoz effektlari!');
+console.log('📱 Mobil: Joystick + Tugma | 💻 Desktop: Sichqoncha + WASD + E');<!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yoshekologlar-site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yosh Ekologlar - 3D O'rmon Sayohati</title>
+    <meta name="description" content="O'zingizni hududingizni yashillashtirishga undaydigan interaktiv 3D o'rmon sayti">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-green: #2ecc71;
-            --secondary-green: #27ae60;
-            --dark-green: #1e8449;
-            --light-green: #a8e6cf;
-            --accent-yellow: #f9ca24;
-            --accent-blue: #3498db;
-            --dark-blue: #2980b9;
-            --light-gray: #f8f9fa;
-            --medium-gray: #e9ecef;
-            --dark-gray: #6c757d;
-            --darker-gray: #343a40;
-            --white: #ffffff;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 6px 15px rgba(0, 0, 0, 0.15);
-            --transition: all 0.3s ease;
-            --border-radius: 12px;
-            --border-radius-sm: 8px;
-            --border-radius-lg: 20px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Open Sans', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f9f5;
-            overflow-x: hidden;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            line-height: 1.3;
-            margin-bottom: 1rem;
-            color: var(--darker-gray);
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        section {
-            padding: 80px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            position: relative;
-            display: inline-block;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--dark-green);
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70px;
-            height: 4px;
-            background: var(--primary-green);
-            border-radius: 2px;
-        }
-
-        .section-description {
-            text-align: center;
-            max-width: 800px;
-            margin: 25px auto 50px;
-            font-size: 1.15rem;
-            color: var(--dark-gray);
-        }
-
-        /* Header Styles */
-        header {
-            background-color: var(--white);
-            box-shadow: var(--shadow);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            transition: var(--transition);
-        }
-
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary-green);
-            text-decoration: none;
-        }
-
-        .logo i {
-            margin-right: 10px;
-            font-size: 2rem;
-        }
-
-        .logo span {
-            color: var(--darker-gray);
-        }
-
-        .logo-accent {
-            color: var(--accent-yellow);
-        }
-
-        /* Navigation Styles */
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-
-        .nav-item {
-            margin-left: 30px;
-            text-decoration: none;
-            color: var(--darker-gray);
-            font-weight: 600;
-            font-size: 1.05rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: var(--transition);
-            position: relative;
-            padding: 5px 0;
-        }
-
-        .nav-item i {
-            font-size: 1.3rem;
-            margin-bottom: 3px;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            color: var(--primary-green);
-        }
-
-        .nav-item::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 3px;
-            background: var(--primary-green);
-            transition: var(--transition);
-            border-radius: 2px;
-        }
-
-        .nav-item:hover::after, .nav-item.active::after {
-            width: 100%;
-        }
-
-        .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--darker-gray);
-            cursor: pointer;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(0, 30, 0, 0.7), rgba(0, 50, 0, 0.8)), url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: var(--white);
-            position: relative;
-        }
-
-        .hero-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding-top: 80px;
-        }
-
-        .hero h1 {
-            font-size: 4.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            color: var(--white);
-        }
-
-        .hero p {
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            display: inline-block;
-            background: var(--primary-green);
-            color: white;
-            padding: 14px 32px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: var(--transition);
-            border: 2px solid var(--primary-green);
-            cursor: pointer;
-            box-shadow: var(--shadow);
-        }
-
-        .btn:hover {
-            background: transparent;
-            color: var(--primary-green);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--white);
-            border-color: var(--white);
-        }
-
-        .btn-secondary:hover {
-            background: var(--white);
-            color: var(--dark-green);
-        }
-
-        .btn-accent {
-            background: var(--accent-yellow);
-            border-color: var(--accent-yellow);
-            color: var(--darker-gray);
-        }
-
-        .btn-accent:hover {
-            background: transparent;
-            color: var(--accent-yellow);
-            border-color: var(--accent-yellow);
-        }
-
-        /* Section Wrapper */
-        .section-wrapper {
-            background: var(--white);
-            padding: 80px 0;
-        }
-
-        .section-wrapper:nth-child(even) {
-            background: var(--light-gray);
-        }
-
-        /* About Section */
-        .about-content {
-            display: flex;
-            align-items: center;
-            gap: 50px;
-            margin-top: 40px;
-        }
-
-        .about-text {
-            flex: 1;
-        }
-
-        .about-text h2 {
-            font-size: 2.3rem;
-            margin-bottom: 25px;
-            color: var(--dark-green);
-        }
-
-        .about-text p {
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-        }
-
-        .about-image {
-            flex: 1;
-            border-radius: var(--border-radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-hover);
-            height: 450px;
-            background: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80') center/cover no-repeat;
-        }
-
-        /* Mission Section */
-        .mission-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
-        }
-
-        .mission-card {
-            background: var(--white);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .mission-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .mission-card i {
-            font-size: 3.5rem;
-            color: var(--primary-green);
-            margin-bottom: 20px;
-        }
-
-        .mission-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: var(--dark-green);
-        }
-
-        /* Staff Section */
-        .info-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .info-card {
-            background: var(--white);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            text-align: center;
-            padding: 25px 20px;
-        }
-
-        .info-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .info-card img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--light-green);
-            margin-bottom: 20px;
-            transition: var(--transition);
-        }
-
-        .info-card:hover img {
-            transform: scale(1.05);
-        }
-
-        .info-card h3 {
-            font-size: 1.6rem;
-            margin-bottom: 8px;
-            color: var(--dark-green);
-        }
-
-        .info-card p {
-            color: var(--dark-blue);
-            font-weight: 600;
-            font-size: 1.05rem;
-        }
-
-        /* Projects Section */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
-        }
-
-        .project-card {
-            background: var(--white);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .project-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .project-img {
-            height: 220px;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .project-content {
-            padding: 25px;
-        }
-
-        .project-content h3 {
-            font-size: 1.7rem;
-            margin-bottom: 10px;
-            color: var(--dark-green);
-        }
-
-        .project-content p {
-            margin-bottom: 15px;
-            color: var(--dark-gray);
-        }
-
-        /* Contact Section */
-        .contact-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 50px;
-            margin-top: 40px;
-        }
-
-        .contact-info {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .contact-item i {
-            font-size: 1.8rem;
-            color: var(--primary-green);
-            min-width: 30px;
-            margin-top: 5px;
-        }
-
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--darker-gray);
-        }
-
-        .form-control {
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius-sm);
-            font-family: 'Open Sans', sans-serif;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-green);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
-        }
-
-        textarea.form-control {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        /* Footer */
-        footer {
-            background: var(--darker-gray);
-            color: var(--white);
-            padding: 60px 0 30px;
-        }
-
-        .footer-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-        }
-
-        .footer-col h3 {
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-            position: relative;
-            padding-bottom: 10px;
-            color: var(--white);
-        }
-
-        .footer-col h3::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--primary-green);
-        }
-
-        .footer-col p {
-            margin: 15px 0;
-            color: #bbb;
-            font-size: 0.95rem;
-        }
-
-        .footer-links {
-            list-style: none;
-            margin-top: 20px;
-        }
-
-        .footer-links li {
-            margin-bottom: 12px;
-        }
-
-        .footer-links a {
-            color: #bbb;
-            text-decoration: none;
-            transition: var(--transition);
-            display: block;
-            font-size: 0.95rem;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary-green);
-            transform: translateX(5px);
-        }
-
-        .footer-links i {
-            margin-right: 10px;
-            width: 20px;
-        }
-
-        .copyright {
-            text-align: center;
-            padding-top: 30px;
-            margin-top: 30px;
-            border-top: 1px solid #444;
-            color: #aaa;
-            font-size: 0.95rem;
-        }
-
-        /* Chatbot Button */
-        .chatbot-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: var(--primary-green);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: var(--shadow-hover);
-            transition: var(--transition);
-            z-index: 2000;
-            text-decoration: none;
-            border: 3px solid white;
-        }
-
-        .chatbot-btn:hover {
-            background: var(--dark-green);
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
-        }
-
-        .chatbot-btn i {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
-        /* Language Selector */
-        .language-selector {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--white);
-            border: 1px solid #ddd;
-            border-radius: 50px;
-            padding: 5px;
-            display: flex;
-            box-shadow: var(--shadow);
-        }
-
-        .lang-btn {
-            background: none;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-weight: 600;
-            transition: var(--transition);
-            color: var(--dark-gray);
-        }
-
-        .lang-btn.active, .lang-btn:hover {
-            background: var(--primary-green);
-            color: white;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .hero h1 {
-                font-size: 3.8rem;
-            }
-            
-            .about-content {
-                flex-direction: column;
-            }
-            
-            .about-image {
-                width: 100%;
-                height: 400px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hamburger {
-                display: block;
-            }
-            
-            .nav-links {
-                position: fixed;
-                top: 80px;
-                right: -100%;
-                width: 80%;
-                height: calc(100vh - 80px);
-                background: var(--white);
-                flex-direction: column;
-                align-items: center;
-                padding-top: 40px;
-                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-                transition: var(--transition);
-                z-index: 999;
-            }
-            
-            .nav-links.active {
-                right: 0;
-            }
-            
-            .nav-item {
-                margin: 15px 0;
-                font-size: 1.3rem;
-            }
-            
-            .nav-item i {
-                font-size: 1.8rem;
-            }
-            
-            .hero h1 {
-                font-size: 3rem;
-            }
-            
-            .hero p {
-                font-size: 1.3rem;
-            }
-            
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .section-title {
-                font-size: 2.2rem;
-            }
-            
-            section {
-                padding: 60px 0;
-            }
-            
-            .section-wrapper {
-                padding: 60px 0;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero p {
-                font-size: 1.15rem;
-            }
-            
-            .btn {
-                padding: 12px 25px;
-                font-size: 1rem;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .section-description {
-                font-size: 1rem;
-            }
-            
-            .chatbot-btn {
-                width: 55px;
-                height: 55px;
-                bottom: 20px;
-                right: 20px;
-            }
-        }
+      /* ========================================
+   GLOBAL STYLES
+   ======================================== */
+:root {
+    --primary-green: #2ECC71;
+    --primary-green-dark: #27AE60;
+    --secondary-blue: #3498DB;
+    --secondary-blue-dark: #2980B9;
+    --accent-yellow: #F39C12;
+    --accent-orange: #E67E22;
+    --dark-charcoal: #2C3E50;
+    --dark-slate: #1F2937;
+    --light-gray: #ECF0F1;
+    --light-silver: #F3F4F6;
+    --text-dark: #111827;
+    --text-light: #6B7280;
+    --white: #FFFFFF;
+    --transition-fast: all 0.3s ease;
+    --transition-normal: all 0.5s ease;
+    --transition-slow: all 0.8s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    color: var(--text-dark);
+    overflow: hidden;
+    background: var(--dark-slate);
+    touch-action: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+}
+
+/* Hide on mobile/desktop */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+/* ========================================
+   CANVAS
+   ======================================== */
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#forest-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ========================================
+   FOREST UI
+   ======================================== */
+.forest-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* ========================================
+   SECTION INFO
+   ======================================== */
+.section-info {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(44, 62, 80, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    pointer-events: all;
+    border: 2px solid rgba(46, 204, 113, 0.3);
+    max-width: 600px;
+    animation: fadeInDown 0.5s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.section-title {
+    color: var(--white);
+    font-size: 24px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.section-description {
+    color: var(--light-gray);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* ========================================
+   NAVIGATION BUTTONS (Desktop)
+   ======================================== */
+.nav-buttons {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    background: rgba(44, 62, 80, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 10px 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    pointer-events: all;
+    border: 2px solid rgba(46, 204, 113, 0.3);
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 40px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    backdrop-filter: blur(5px);
+}
+
+.nav-btn:hover {
+    background: rgba(46, 204, 113, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+.nav-btn:active {
+    transform: translateY(0);
+}
+
+.nav-btn i {
+    font-size: 18px;
+}
+
+/* ========================================
+   MOBILE NAVIGATION
+   ======================================== */
+.mobile-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    pointer-events: all;
+    z-index: 200;
+}
+
+.mobile-nav-toggle {
+    width: 100%;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.9) 0%, rgba(46, 204, 113, 0.8) 100%);
+    border: none;
+    border-radius: 24px 24px 0 0;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-fast);
+}
+
+.mobile-nav-toggle i {
+    font-size: 20px;
+}
+
+.mobile-nav-toggle:active {
+    transform: scale(0.98);
+}
+
+.mobile-nav-menu {
+    background: rgba(44, 62, 80, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.mobile-nav-menu.active {
+    transform: translateY(0);
+    pointer-events: all;
+    opacity: 1;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 16px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-align: center;
+}
+
+.mobile-nav-item:hover {
+    background: rgba(46, 204, 113, 0.4);
+    transform: translateY(-3px);
+}
+
+.mobile-nav-item:active {
+    transform: scale(0.95);
+}
+
+.mobile-nav-item i {
+    font-size: 24px;
+}
+
+/* ========================================
+   MOBILE CONTROLS
+   ======================================== */
+.mobile-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 150;
+}
+
+/* Joystick */
+.joystick-container {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    pointer-events: all;
+}
+
+.joystick-base {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(46, 204, 113, 0.3);
+    border-radius: 50%;
+    border: 3px solid rgba(46, 204, 113, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.joystick-thumb {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(46, 204, 113, 0.8);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+/* Action Button */
+.action-button {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.95) 0%, rgba(46, 204, 113, 0.85) 100%);
+    border: none;
+    border-radius: 50%;
+    color: var(--white);
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.5);
+    pointer-events: all;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 160;
+    flex-direction: column;
+}
+
+.action-button:active {
+    transform: scale(0.9);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+.mobile-action-text {
+    font-size: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    margin-top: -5px;
+}
+
+/* ========================================
+   READ BUTTON (Desktop)
+   ======================================== */
+.read-button {
+    position: absolute;
+    bottom: 150px;
+    right: 30px;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.95) 0%, rgba(46, 204, 113, 0.85) 100%);
+    border: none;
+    border-radius: 50px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.5);
+    pointer-events: all;
+    transition: var(--transition-fast);
+    animation: pulse 2s infinite;
+    z-index: 120;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(46, 204, 113, 0);
+    }
+}
+
+.read-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(46, 204, 113, 0.6);
+}
+
+.read-button:active {
+    transform: scale(0.98);
+}
+
+.read-button i {
+    font-size: 20px;
+}
+
+/* ========================================
+   START BUTTON (Mobile)
+   ======================================== */
+.start-button {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 18px 40px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.95) 0%, rgba(46, 204, 113, 0.85) 100%);
+    border: none;
+    border-radius: 50px;
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 30px rgba(46, 204, 113, 0.6);
+    pointer-events: all;
+    transition: var(--transition-fast);
+    animation: bounce 2s infinite;
+    z-index: 300;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+}
+
+.start-button:active {
+    transform: translateX(-50%) scale(0.98);
+}
+
+.start-button i {
+    font-size: 24px;
+}
+
+/* ========================================
+   CONTENT PANEL
+   ======================================== */
+.content-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-normal);
+    border: 3px solid var(--primary-green);
+    z-index: 1000;
+}
+
+.content-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: all;
+}
+
+.content-header {
+    background: linear-gradient(135deg, var(--dark-charcoal) 0%, var(--dark-slate) 100%);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--primary-green);
+}
+
+.content-header h3 {
+    color: var(--white);
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    color: var(--white);
+    font-size: 20px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: var(--primary-green);
+    transform: rotate(90deg);
+}
+
+.content-body {
+    padding: 30px;
+}
+
+/* Content Styling */
+.news-item {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.news-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.news-item h4 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: var(--dark-charcoal);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.news-item h4 i {
+    color: var(--primary-green);
+    font-size: 20px;
+}
+
+.date {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date i {
+    color: var(--secondary-blue);
+}
+
+.news-item p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text-light);
+}
+
+.about-text {
+    line-height: 1.8;
+    color: var(--text-light);
+}
+
+.about-text p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.about-text strong {
+    color: var(--primary-green);
+    font-weight: 700;
+}
+
+.mission-values {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.value-card {
+    background: rgba(46, 204, 113, 0.1);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid rgba(46, 204, 113, 0.2);
+}
+
+.value-card i {
+    font-size: 40px;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+}
+
+.value-card h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--dark-charcoal);
+}
+
+.value-card p {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.tips-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.tip-item {
+    display: flex;
+    gap: 15px;
+    background: rgba(46, 204, 113, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-green);
+    transition: var(--transition-fast);
+}
+
+.tip-item:hover {
+    background: rgba(46, 204, 113, 0.15);
+    transform: translateX(5px);
+}
+
+.tip-item i {
+    font-size: 32px;
+    color: var(--primary-green);
+    min-width: 40px;
+}
+
+.tip-item h4 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--dark-charcoal);
+    font-weight: 700;
+}
+
+.tip-item p {
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.projects-list {
+    margin-top: 20px;
+}
+
+.project-item {
+    background: rgba(46, 204, 113, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary-green);
+    display: flex;
+    gap: 15px;
+}
+
+.project-item .status {
+    font-size: 24px;
+    min-width: 30px;
+}
+
+.project-item h4 {
+    font-size: 19px;
+    margin-bottom: 8px;
+    color: var(--dark-charcoal);
+    font-weight: 700;
+}
+
+.project-item .period {
+    font-size: 14px;
+    color: var(--accent-orange);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.project-item p {
+    font-size: 15px;
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.blog-list {
+    margin-top: 20px;
+}
+
+.blog-item {
+    background: rgba(46, 204, 113, 0.08);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(46, 204, 113, 0.1);
+}
+
+.blog-item h4 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: var(--dark-charcoal);
+    font-weight: 700;
+}
+
+.blog-item .meta {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
+
+.blog-item .meta i {
+    color: var(--secondary-blue);
+    margin-right: 5px;
+}
+
+.blog-item p {
+    font-size: 15px;
+    color: var(--text-light);
+    line-height: 1.7;
+}
+
+/* ========================================
+   LOADING OVERLAY - MASHINA ANIMATSIYASI
+   ======================================== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a2a1a 0%, #2d4a2d 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-normal);
+    pointer-events: none;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+.car-animation {
+    position: relative;
+    width: 300px;
+    height: 200px;
+    margin-bottom: 30px;
+}
+
+.car {
+    position: absolute;
+    bottom: 50px;
+    left: -100px;
+    animation: carDrive 4s ease-in-out forwards;
+}
+
+.car-body {
+    position: relative;
+    width: 120px;
+    height: 50px;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-radius: 15px 40px 15px 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.car-roof {
+    position: absolute;
+    top: -25px;
+    left: 20px;
+    width: 80px;
+    height: 30px;
+    background: linear-gradient(135deg, #2980b9 0%, #1a6496 100%);
+    border-radius: 10px 30px 0 0;
+}
+
+.car-windows {
+    position: absolute;
+    top: -20px;
+    left: 25px;
+    width: 70px;
+    height: 20px;
+    background: rgba(40, 40, 80, 0.6);
+    border-radius: 5px 20px 0 0;
+}
+
+.car-windows .window {
+    position: absolute;
+    width: 25px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+}
+
+.car-windows .window.front {
+    left: 5px;
+    top: 2px;
+}
+
+.car-windows .window.back {
+    right: 5px;
+    top: 2px;
+}
+
+.car-wheels {
+    position: absolute;
+    bottom: -15px;
+    left: 15px;
+    width: 90px;
+    height: 30px;
+}
+
+.car-wheels .wheel {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #111;
+    border-radius: 50%;
+    border: 3px solid #888;
+    animation: wheelSpin 0.2s linear infinite;
+}
+
+.car-wheels .wheel.front-left {
+    left: 0;
+    bottom: 0;
+}
+
+.car-wheels .wheel.front-right {
+    right: 0;
+    bottom: 0;
+}
+
+.car-wheels .wheel.back-left {
+    left: 0;
+    top: 0;
+}
+
+.car-wheels .wheel.back-right {
+    right: 0;
+    top: 0;
+}
+
+.car-lights {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+}
+
+.car-lights .headlight {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ffcc00;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #ffcc00;
+}
+
+.car-lights .headlight.left {
+    left: 5px;
+}
+
+.car-lights .headlight.right {
+    right: 5px;
+}
+
+.road {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(to bottom, #333 0%, #555 100%);
+    border-radius: 0 0 100px 100px;
+    overflow: hidden;
+}
+
+.road-markings {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 20px,
+        white 20px,
+        white 40px
+    );
+    animation: roadMove 0.5s linear infinite;
+}
+
+@keyframes carDrive {
+    0% {
+        left: -100px;
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    20% {
+        left: 50px;
+        transform: scale(1);
+        opacity: 1;
+    }
+    80% {
+        left: 150px;
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        left: 400px;
+        transform: scale(0.3);
+        opacity: 0;
+    }
+}
+
+@keyframes wheelSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes roadMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+
+.travel-text {
+    color: var(--white);
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.destination-info {
+    color: var(--light-gray);
+    font-size: 16px;
+    font-family: 'Open Sans', sans-serif;
+    text-align: center;
+    padding: 10px 30px;
+    background: rgba(46, 204, 113, 0.2);
+    border-radius: 20px;
+    border: 2px solid rgba(46, 204, 113, 0.4);
+}
+
+/* ========================================
+   AUDIO CONTROLS
+   ======================================== */
+.audio-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    pointer-events: all;
+    z-index: 200;
+}
+
+.audio-btn {
+    width: 50px;
+    height: 50px;
+    background: rgba(44, 62, 80, 0.9);
+    border: none;
+    border-radius: 50%;
+    color: var(--white);
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.audio-btn:hover {
+    background: rgba(46, 204, 113, 0.8);
+    transform: scale(1.1);
+}
+
+.audio-btn.muted i {
+    color: #999;
+}
+
+/* ========================================
+   CONTROLS INFO (Desktop)
+   ======================================== */
+.controls-info {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(44, 62, 80, 0.92);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    pointer-events: all;
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--white);
+    font-size: 13px;
+}
+
+.control-item i {
+    font-size: 16px;
+    color: var(--primary-green);
+    min-width: 20px;
+}
+
+/* ========================================
+   PRELOADER
+   ======================================== */
+.preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--dark-slate) 0%, var(--dark-charcoal) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: var(--transition-slow);
+}
+
+.preloader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.preloader-content {
+    text-align: center;
+    color: var(--white);
+}
+
+.tree-icon {
+    font-size: 80px;
+    color: var(--primary-green);
+    margin-bottom: 25px;
+    animation: grow 2s ease-in-out infinite;
+}
+
+@keyframes grow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.preloader h2 {
+    font-size: 36px;
+    margin-bottom: 15px;
+    font-family: 'Montserrat', sans-serif;
+    text-shadow: 0 4px 15px rgba(46, 204, 113, 0.5);
+}
+
+.preloader p {
+    font-size: 18px;
+    margin-bottom: 35px;
+    color: var(--light-gray);
+}
+
+.loading-bar {
+    width: 350px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-green) 0%, var(--secondary-blue) 100%);
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.loading-text {
+    color: var(--light-gray);
+    font-size: 14px;
+    margin-top: 10px;
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* ========================================
+   SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-green);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-green-dark);
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: block;
+    }
+    
+    .section-info {
+        padding: 15px 20px;
+        max-width: 90%;
+    }
+    
+    .section-title {
+        font-size: 20px;
+    }
+    
+    .section-description {
+        font-size: 13px;
+    }
+    
+    .controls-info {
+        display: none;
+    }
+    
+    .content-panel {
+        width: 95%;
+        max-width: 100%;
+    }
+    
+    .content-body {
+        padding: 20px;
+    }
+    
+    .read-button {
+        bottom: 130px;
+        right: 20px;
+        padding: 14px 24px;
+        font-size: 14px;
+    }
+    
+    .read-button i {
+        font-size: 18px;
+    }
+    
+    .tips-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .mission-values {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-info {
+        top: 10px;
+        padding: 12px 15px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+    
+    .section-description {
+        font-size: 12px;
+    }
+    
+    .mobile-nav-menu {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 15px;
+        gap: 10px;
+    }
+    
+    .mobile-nav-item {
+        padding: 12px 3px;
+        font-size: 11px;
+    }
+    
+    .mobile-nav-item i {
+        font-size: 20px;
+    }
+    
+    .mobile-controls {
+        bottom: 20px;
+        padding: 0 15px;
+    }
+    
+    .joystick-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .joystick-thumb {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .action-button {
+        width: 65px;
+        height: 65px;
+        font-size: 26px;
+    }
+    
+    .mobile-action-text {
+        font-size: 7px;
+    }
+    
+    .read-button {
+        display: none;
+    }
+    
+    .start-button {
+        bottom: 30px;
+        padding: 16px 35px;
+        font-size: 16px;
+    }
+    
+    .start-button i {
+        font-size: 20px;
+    }
+    
+    .content-header h3 {
+        font-size: 22px;
+    }
+    
+    .close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .audio-controls {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .audio-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}
     </style>
 </head>
 <body>
-    <!-- Header with Navigation -->
-    <header>
-        <div class="container header-container">
-            <a href="#" class="logo">
-                <i class="fas fa-leaf"></i>
-                yosh<span class="logo-accent">ekologlar</span>
-            </a>
-            <button class="hamburger" id="hamburger">
-                <i class="fas fa-bars"></i>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="preloader-content">
+            <div class="tree-icon">
+                <i class="fas fa-tree"></i>
+            </div>
+            <h2>Yosh Ekologlar</h2>
+            <p>O'rmon dunyosiga kirish...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-text">Ovozlar yuklanmoqda...</div>
+        </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container">
+        <canvas id="forest-canvas"></canvas>
+    </div>
+
+    <!-- UI Overlay -->
+    <div class="forest-ui">
+        <!-- Section Info -->
+        <div class="section-info">
+            <div class="section-title" id="sectionTitle">🌲 O'rmon Kirishi</div>
+            <div class="section-description" id="sectionDescription">
+                Xush kelibsiz! Sichqonchani bosib harakatlang yoki tugmalardan foydalaning.
+            </div>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="nav-buttons desktop-only">
+            <button class="nav-btn" data-section="about" title="Biz haqimizda - Daryo">
+                <i class="fas fa-water"></i>
+                <span>Biz haqimizda</span>
             </button>
-            <ul class="nav-links" id="navLinks">
-                <a href="#hero" class="nav-item active">
-                    <i class="fas fa-home"></i>
-                    <span class="i18n" data-key="nav_home">Bosh sahifa</span>
-                </a>
-                <a href="#about" class="nav-item">
-                    <i class="fas fa-info-circle"></i>
-                    <span class="i18n" data-key="nav_about">Biz haqimizda</span>
-                </a>
-                <a href="#mission" class="nav-item">
-                    <i class="fas fa-bullseye"></i>
-                    <span class="i18n" data-key="nav_mission">Missiya</span>
-                </a>
-                <a href="#staff" class="nav-item">
-                    <i class="fas fa-users-cog"></i>
-                    <span class="i18n" data-key="nav_staff">Xodimlar</span>
-                </a>
-                <a href="#projects" class="nav-item">
-                    <i class="fas fa-project-diagram"></i>
-                    <span class="i18n" data-key="nav_projects">Loyihalar</span>
-                </a>
-                <a href="#contact" class="nav-item">
-                    <i class="fas fa-envelope"></i>
-                    <span class="i18n" data-key="nav_contact">Aloqa</span>
-                </a>
-                <div class="language-selector">
-                    <button class="lang-btn active" data-lang="uz">UZ</button>
-                    <button class="lang-btn" data-lang="en">EN</button>
-                    <button class="lang-btn" data-lang="ru">RU</button>
-                </div>
-            </ul>
+            <button class="nav-btn" data-section="tips" title="Yashil maslahatlar - Maydon">
+                <i class="fas fa-lightbulb"></i>
+                <span>Maslahatlar</span>
+            </button>
+            <button class="nav-btn" data-section="projects" title="Loyihalar - Tog'">
+                <i class="fas fa-mountain"></i>
+                <span>Loyihalar</span>
+            </button>
+            <button class="nav-btn" data-section="blog" title="Blog - Kutubxona">
+                <i class="fas fa-book"></i>
+                <span>Blog</span>
+            </button>
+            <button class="nav-btn" data-section="news" title="Yangiliklar - Toshlar">
+                <i class="fas fa-newspaper"></i>
+                <span>Yangiliklar</span>
+            </button>
         </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="hero" id="hero">
-        <div class="container hero-content">
-            <h1 class="i18n" data-key="hero_title">Kelajakni Himoya Qilish</h1>
-            <p class="i18n" data-key="hero_subtitle">Tabiatni muhofaza qilish va barqaror rivojlanish uchun innovatsion yechimlar</p>
-            <div class="hero-buttons">
-                <a href="#projects" class="btn btn-accent i18n" data-key="hero_btn_explore">Loyihalarni ko'rish</a>
-                <a href="#contact" class="btn btn-secondary i18n" data-key="hero_btn_contact">Biz bilan bog'lanish</a>
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav mobile-only">
+            <button class="mobile-nav-toggle" id="mobileNavToggle">
+                <i class="fas fa-compass"></i>
+                <span>Bo'limlar</span>
+            </button>
+            <div class="mobile-nav-menu" id="mobileNavMenu">
+                <button class="mobile-nav-item" data-section="about">
+                    <i class="fas fa-water"></i>
+                    <span>Biz haqimizda</span>
+                </button>
+                <button class="mobile-nav-item" data-section="tips">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Maslahatlar</span>
+                </button>
+                <button class="mobile-nav-item" data-section="projects">
+                    <i class="fas fa-mountain"></i>
+                    <span>Loyihalar</span>
+                </button>
+                <button class="mobile-nav-item" data-section="blog">
+                    <i class="fas fa-book"></i>
+                    <span>Blog</span>
+                </button>
+                <button class="mobile-nav-item" data-section="news">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Yangiliklar</span>
+                </button>
             </div>
         </div>
-    </section>
 
-    <!-- About Section -->
-    <section class="section-wrapper" id="about">
-        <div class="container">
-            <h2 class="section-title i18n" data-key="about_title">Biz haqimizda</h2>
-            <p class="section-description i18n" data-key="about_description">yoshekologlar - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.</p>
+        <!-- Mobile Controls -->
+        <div class="mobile-controls mobile-only">
+            <div class="joystick-container" id="joystickContainer">
+                <div class="joystick-base"></div>
+                <div class="joystick-thumb"></div>
+            </div>
             
-            <div class="about-content">
-                <div class="about-text">
-                    <h2 class="i18n" data-key="about_subtitle">Biz kimiz va nimani qilamiz</h2>
-                    <p class="i18n" data-key="about_text1">"Yashil makon" loyihalari: Bo‘sh hududlarga ko‘chatlar ekish va ularni parvarish qilish.</p>
-                    <p class="i18n" data-key="about_text2">Insonlarni o'zi yashab turgan hududini asrash va uni yashil zona qilishni singdiramiz.</p>
-                    <p class="i18n" data-key="about_text3">Hasharlar va tozalash ishlari: Daryo bo‘ylari, xiyobonlar va tog‘li hududlarni chiqindilardan tozalash.</p>
-                </div>
-                <div class="about-image"></div>
+            <button class="action-button" id="mobileActionButton" title="O'qish">
+                <i class="fas fa-book-open"></i>
+                <span class="mobile-action-text">O'qish</span>
+            </button>
+        </div>
+
+        <!-- Read Button (Desktop) -->
+        <button class="read-button desktop-only" id="desktopReadButton" title="O'qish (E)">
+            <i class="fas fa-book-open"></i>
+            <span>O'qish</span>
+        </button>
+
+        <!-- Content Panel -->
+        <div class="content-panel" id="contentPanel">
+            <div class="content-header">
+                <h3 id="panelTitle">Yangiliklar</h3>
+                <button class="close-btn" id="closePanel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="content-body" id="contentBody">
+                <!-- Content will be loaded here -->
             </div>
         </div>
-    </section>
 
-    <!-- Mission Section -->
-    <section class="section-wrapper" id="mission" style="background-color: #f0f7f0;">
-        <div class="container">
-            <h2 class="section-title i18n" data-key="mission_title">Bizning Missiyamiz</h2>
-            <p class="section-description i18n" data-key="mission_description">Biz quyidagi yo'nalishlarda faol ish olib boramiz:</p>
-            
-            <div class="mission-cards">
-                <div class="mission-card" data-aos="fade-up">
-                    <i class="fas fa-tree"></i>
-                    <h3 class="i18n" data-key="mission_card1_title">O'rmonlarni Muhofaza Qilish</h3>
-                    <p class="i18n" data-key="mission_card1_text">O'rmonlarni qayta tiklash va yangi daraxtlar ekish orqali tabiatni asrab qolish.</p>
+        <!-- Loading Indicator - MASHINA ANIMATSIYASI -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="car-animation">
+                <div class="car">
+                    <div class="car-body">
+                        <div class="car-roof"></div>
+                        <div class="car-windows">
+                            <div class="window front"></div>
+                            <div class="window back"></div>
+                        </div>
+                        <div class="car-wheels">
+                            <div class="wheel front-left"></div>
+                            <div class="wheel front-right"></div>
+                            <div class="wheel back-left"></div>
+                            <div class="wheel back-right"></div>
+                        </div>
+                        <div class="car-lights">
+                            <div class="headlight left"></div>
+                            <div class="headlight right"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mission-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="road">
+                    <div class="road-markings"></div>
+                </div>
+            </div>
+            <p class="travel-text">Sayohat davom etmoqda...</p>
+            <div class="destination-info" id="destinationInfo">Daryo bo'yiga borilyapti...</div>
+        </div>
+
+        <!-- Controls Info (Desktop) -->
+        <div class="controls-info desktop-only">
+            <div class="control-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>Sichqoncha - Aylanish</span>
+            </div>
+            <div class="control-item">
+                <i class="fas fa-keyboard"></i>
+                <span>WASD - Yurish</span>
+            </div>
+            <div class="control-item">
+                <i class="fas fa-door-open"></i>
+                <span>ESC - Chiqish</span>
+            </div>
+            <div class="control-item">
+                <i class="fas fa-book-open"></i>
+                <span>E - O'qish</span>
+            </div>
+        </div>
+
+        <!-- Start Button (Mobile) -->
+        <button class="start-button mobile-only" id="startButton">
+            <i class="fas fa-play"></i>
+            <span>O'rmonni o'rganish</span>
+        </button>
+
+        <!-- Audio Controls -->
+        <div class="audio-controls">
+            <button class="audio-btn" id="audioToggle">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden Content Templates -->
+    <div id="contentTemplates" style="display: none;">
+        <!-- News Content -->
+        <div id="newsContent">
+            <div class="news-item">
+                <h4><i class="fas fa-seedling"></i> Yosh ekologlar 1000 daraxt ekdilar!</h4>
+                <p class="date"><i class="fas fa-calendar"></i> 16.02.2026</p>
+                <p>
+                    Bugun Toshkent shahrida yoshlar 1000 ta meva daraxtlari ekdilar. Bu loyiha 500 dan ortiq yoshlarning ishtiroki bilan amalga oshirildi. Har bir ekilgan daraxt - kelajak avlodlar uchun qo'yilgan ishonchli qadam.
+                </p>
+            </div>
+            <div class="news-item">
+                <h4><i class="fas fa-tint"></i> Chirchiq daryosini tozalash boshlandi</h4>
+                <p class="date"><i class="fas fa-calendar"></i> 14.02.2026</p>
+                <p>
+                    Chirchiq daryosini tozalash dasturi boshlandi. Birinchi bosqichda 300 yosh ishtirok etdi va 5 tonna axlat yig'ildi. Bu loyiha shahar ekologik muhitini yaxshilashga katta hissa qo'shadi.
+                </p>
+            </div>
+            <div class="news-item">
+                <h4><i class="fas fa-park"></i> Yangi "Yoshlar Parki" loyihasi e'lon qilindi</h4>
+                <p class="date"><i class="fas fa-calendar"></i> 12.02.2026</p>
+                <p>
+                    Shahar hokimiyati bilan hamkorlikda yangi park yaratish loyihasi boshlandi. Park yoshlar uchun ekologik markaz bo'ladi va ko'plab yashil zonalarni o'z ichiga oladi.
+                </p>
+            </div>
+        </div>
+
+        <!-- About Content -->
+        <div id="aboutContent">
+            <h3><i class="fas fa-water"></i> Daryo Bo'yida - Biz Haqimizda</h3>
+            <div class="about-text">
+                <p>
+                    <strong>Yosh Ekologlar</strong> - bu tabiatni muhofaza qilishga qaratilgan yoshlar jamoasi. Biz o'zimiz yashab turgan hududlarni yashil va go'zal qilish uchun birgalikda ishlaymiz.
+                </p>
+                <p>
+                    Har kunning o'zida yuzlab daraxtlar kesilmoqda, lekin biz bunga to'g'ri kelmaymiz. Har bir ekilgan daraxt - kelajak avlodlar uchun qo'yilgan ishonchli qadam.
+                </p>
+                <p>
+                    Bizning maqsadimiz - yoshlarni tabiatni asrashga undash, amaliy ko'nikmalar berish va ularni faol fuqarolarga aylantirish.
+                </p>
+                <div class="mission-values">
+                    <div class="value-card">
+                        <i class="fas fa-heart"></i>
+                        <h4>Sevgi</h4>
+                        <p>Tabiatga muhabbat bilan yondashamiz</p>
+                    </div>
+                    <div class="value-card">
+                        <i class="fas fa-hands"></i>
+                        <h4>Amaliyot</h4>
+                        <p>Gap emas, ish bilan isbotlaymiz</p>
+                    </div>
+                    <div class="value-card">
+                        <i class="fas fa-users"></i>
+                        <h4>Jamoa</h4>
+                        <p>Birgalikda kuchliroqmiz</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Content -->
+        <div id="tipsContent">
+            <h3><i class="fas fa-lightbulb"></i> Ochiq Maydon - Yashil Maslahatlar</h3>
+            <div class="tips-list">
+                <div class="tip-item">
                     <i class="fas fa-tint"></i>
-                    <h3 class="i18n" data-key="mission_card2_title">Toza Suv</h3>
-                    <p class="i18n" data-key="mission_card2_text">Suv manbalarini tozalash va suvdan oqilona foydalanishni targ'ib qilish.</p>
+                    <div>
+                        <h4>Suvni tejang</h4>
+                        <p>Changlatish paytida suvni oqib ketishini oldini oling.</p>
+                    </div>
                 </div>
-                <div class="mission-card" data-aos="fade-up" data-aos-delay="200">
-                    <i class="fas fa-wind"></i>
-                    <h3 class="i18n" data-key="mission_card3_title">Qayta Tiklanadigan Energiya</h3>
-                    <p class="i18n" data-key="mission_card3_text">Quyosh va shamol energiyasidan foydalanish orqali atrof-muhitni ifloslantirmaslik.</p>
-                </div>
-                <div class="mission-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="tip-item">
                     <i class="fas fa-recycle"></i>
-                    <h3 class="i18n" data-key="mission_card4_title">Qayta Ishlash</h3>
-                    <p class="i18n" data-key="mission_card4_text">Chiqindilarni kamaytirish va qayta ishlashni rag'batlantirish orqali barqaror kelajak yaratish.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Staff Section -->
-    <section class="section-wrapper" id="staff">
-        <div class="container">
-            <h2 class="section-title i18n" data-key="staff_title">Bizning Jamoa</h2>
-            <p class="section-description i18n" data-key="staff_description">Bizning jamoamiz - kelajakni yaratayotgan iqtidorli mutaxassislardan iborat.</p>
-            
-            <div class="info-cards-grid">
-                <!-- Staff Member 1 -->
-                <div class="info-card" data-aos="fade-up">
-                    <img src="Gemini_Generated_Image_pfs1ttpfs1ttpfs1.png" alt="Aziza Karimova">
-                    <h3>Ibragimova Charos</h3>
-                    <p>Ekologiya mutaxassisi 14 yosh</p>
-                </div>
-                
-                <!-- Staff Member 2 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="50">
-                    <img src="Gemini_Generated_Image_xz7bk4xz7bk4xz7b.png" alt="Javlonbek Rahimov">
-                    <h3>Shohjahon Mahkamov</h3>
-                    <p>Dasturlash bo'yicha mentor 17 yosh</p>
-                </div>
-                
-                <!-- Staff Member 3 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="100">
-                    <img src="Gemini_Generated_Image_p9wn7np9wn7np9wn.png" alt="Nigina Tursunova">
-                    <h3>Qodirova Dilnoza</h3>
-                    <p>Loyiha boshi</p>
-                </div>
-                
-                <!-- Staff Member 4 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="150">
-                    <img src="Gemini_Generated_Image_wo437ewo437ewo43.png" alt="Shoxrux Mirzaev">
-                    <h3>Sobirova Nozimabonu</h3>
-                    <p>tadqiqotchisi  14 yosh</p>
-                </div>
-                
-                <!-- Staff Member 5 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="200">
-                    <img src="Gemini_Generated_Image_rmaeh8rmaeh8rmae.png" alt="Malika Ismoilova">
-                    <h3>Aliyeva Rayxona</h3>
-                    <p>Ekopedagog</p>
-                </div>
-                
-                <!-- Staff Member 6 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="250">
-                    <img src="Gemini_Generated_Image_rfhz3qrfhz3qrfhz.png" alt="Otabek Norqulov">
-                    <h3>Shaxzod Rustamov</h3>
-                    <p>Ijtimoiy holatlar aniqlovchi 17 yosh</p>
-                </div>
-                
-                <!-- Staff Member 7 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="300">
-                    <img src="Gemini_Generated_Image_epcmlkepcmlkepcm.png" alt="Zarina Abduvalieva">
-                    <h3>Dehqonova Iroda</h3>
-                    <p>Ma'lumotlar tahlilchisi 14 yosh</p>
-                </div>
-                
-                <!-- Staff Member 8 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="350">
-                    <img src="Gemini_Generated_Image_37dgsz37dgsz37dg.png alt="Rustamjon Qodirov">
-                    <h3>Ergasheva Dilshoda</h3>
-                    <p>guruh sardori 14 yosh</p>
-                </div>
-                
-                <!-- Staff Member 9 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="400">
-                    <img src="Gemini_Generated_Image_7h91ox7h91ox7h91.png" alt="Sevinch Tojiboyeva">
-                    <h3>Mamatova Nozimaxon</h3>
-                    <p>Kontent menejeri 14 yosh</p>
-                </div>
-                
-                <!-- Staff Member 10 -->
-                <div class="info-card" data-aos="fade-up" data-aos-delay="450">
-                    <img src="Gemini_Generated_Image_4eof514eof514eof.png" alt="Ilhom Eshmatov">
-                    <h3>Abduhakimova Nigina</h3>
-                    <p>Ekologik 14 yosh</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Projects Section -->
-    <section class="section-wrapper" id="projects">
-        <div class="container">
-            <h2 class="section-title i18n" data-key="projects_title">Bizning Loyihalar</h2>
-            <p class="section-description i18n" data-key="projects_description">Dunyo bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.</p>
-            
-            <div class="projects-grid">
-                <div class="project-card" data-aos="fade-up">
-                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
-                    <div class="project-content">
-                        <h3 class="i18n" data-key="project1_title">Yashil Shaharlar</h3>
-                        <p class="i18n" data-key="project1_text">Shahar atrofidagi maydonlarni ko'kalamzorlashtirish va o'rmonlashtirish loyihasi.</p>
-                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                    <div>
+                        <h4>Qayta ishlash</h4>
+                        <p>Qog'oz, plastik va shisha idishlarni alohida yig'ing.</p>
                     </div>
                 </div>
-                
-                <div class="project-card" data-aos="fade-up" data-aos-delay="100">
-                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
-                    <div class="project-content">
-                        <h3 class="i18n" data-key="project2_title">Quyosh Energiyasi</h3>
-                        <p class="i18n" data-key="project2_text">Quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish loyihasi.</p>
-                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                <div class="tip-item">
+                    <i class="fas fa-bicycle"></i>
+                    <div>
+                        <h4>Velosipedda yuring</h4>
+                        <p>Havo ifloslanishini kamaytiring.</p>
                     </div>
                 </div>
-                
-                <div class="project-card" data-aos="fade-up" data-aos-delay="200">
-                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1454117096504-6a8691923683?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
-                    <div class="project-content">
-                        <h3 class="i18n" data-key="project3_title">Suvni Tozalash</h3>
-                        <p class="i18n" data-key="project3_text">Sanoat chiqindilaridan suv manbalarini tozalash va qayta ishlash loyihasi.</p>
-                        <a href="#" class="btn i18n" data-key="project_btn" style="padding: 8px 18px; font-size: 0.95rem;">Batafsil</a>
+                <div class="tip-item">
+                    <i class="fas fa-seedling"></i>
+                    <div>
+                        <h4>Uy daraxtlari</h4>
+                        <p>Uyingiz atrofida daraxt ekish - eng oddiy yashil ish.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Contact Section -->
-    <section class="section-wrapper" id="contact">
-        <div class="container">
-            <h2 class="section-title i18n" data-key="contact_title">Biz bilan bog'laning</h2>
-            <p class="section-description i18n" data-key="contact_description">Savollaringiz yoki takliflaringiz bo'lsa, quyidagi formani to'ldiring.</p>
-            
-            <div class="contact-container">
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <h3 class="i18n" data-key="contact_address_title">Manzil</h3>
-                            <p class="i18n" data-key="contact_address">samarqand shahri, oqdaryo tumani, 38-maktab</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-phone"></i>
-                        <div>
-                            <h3 class="i18n" data-key="contact_phone_title">Telefon</h3>
-                            <p class="i18n" data-key="contact_phone">+998 91 703 13 34</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-envelope"></i>
-                        <div>
-                            <h3 class="i18n" data-key="contact_email_title">Email</h3>
-                            <p class="i18n" data-key="contact_email">info@shoakem07.uz</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <h3 class="i18n" data-key="contact_hours_title">Ish soatlari</h3>
-                            <p class="i18n" data-key="contact_hours">Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 15:00</p>
-                        </div>
-                    </div>
+        <!-- Projects Content -->
+        <div id="projectsContent">
+            <h3><i class="fas fa-mountain"></i> Tog' Yonbag'iri - Loyihalar</h3>
+            <div class="projects-list">
+                <div class="project-item">
+                    <span class="status">✅</span>
+                    <h4>1000 Daraxt Ekish</h4>
+                    <p class="period">Yanvar - Mart 2026</p>
+                    <p>500+ yosh ishtirok etdi, 1000 ta meva daraxti ekildi.</p>
                 </div>
-                
-                <div class="contact-form">
-                    <div class="form-group">
-                        <label for="name" class="i18n" data-key="contact_form_name">Ismingiz</label>
-                        <input type="text" id="name" class="form-control" placeholder="Ismingizni kiriting">
-                    </div>
-                    <div class="form-group">
-                        <label for="email" class="i18n" data-key="contact_form_email">Email manzilingiz</label>
-                        <input type="email" id="email" class="form-control" placeholder="Email manzilingizni kiriting">
-                    </div>
-                    <div class="form-group">
-                        <label for="subject" class="i18n" data-key="contact_form_subject">Mavzu</label>
-                        <input type="text" id="subject" class="form-control" placeholder="Mavzuni kiriting">
-                    </div>
-                    <div class="form-group">
-                        <label for="message" class="i18n" data-key="contact_form_message">Xabar</label>
-                        <textarea id="message" class="form-control" placeholder="Xabaringizni kiriting"></textarea>
-                    </div>
-                    <button class="btn i18n" data-key="contact_form_send">Yuborish</button>
+                <div class="project-item">
+                    <span class="status">🔄</span>
+                    <h4>Suv Tozalash Dasturi</h4>
+                    <p class="period">Fevral - Aprel 2026</p>
+                    <p>Chirchiq daryosini tozalash va atrofidagi hududni yashillantirish.</p>
+                </div>
+                <div class="project-item">
+                    <span class="status">📅</span>
+                    <h4>Yoshlar Parki</h4>
+                    <p class="period">May - Iyun 2026</p>
+                    <p>Yangi park yaratish va uni yoshlar uchun ekologik markazga aylantirish.</p>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-container">
-                <div class="footer-col">
-                    <h3>EcoFuture</h3>
-                    <p class="i18n" data-key="footer_about">Tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.</p>
-                    <div class="footer-social">
-                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-facebook"></i></a>
-                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-twitter"></i></a>
-                        <a href="#" style="display: inline-block; margin-right: 10px; color: var(--white); font-size: 1.5rem;"><i class="fab fa-instagram"></i></a>
-                        <a href="#" style="display: inline-block; color: var(--white); font-size: 1.5rem;"><i class="fab fa-linkedin"></i></a>
-                    </div>
+        <!-- Blog Content -->
+        <div id="blogContent">
+            <h3><i class="fas fa-book"></i> Kutubxona - Blog</h3>
+            <div class="blog-list">
+                <div class="blog-item">
+                    <h4>Global Isish va Bizning Kelajagimiz</h4>
+                    <p class="meta"><i class="fas fa-calendar"></i> 15.02.2026 | <i class="fas fa-clock"></i> 5 min</p>
+                    <p>Global isish dunyo bo'yicha haroratning ortib borayotgan holati...</p>
                 </div>
-                <div class="footer-col">
-                    <h3 class="i18n" data-key="footer_links_title">Foydali havolalar</h3>
-                    <ul class="footer-links">
-                        <li><a href="#about"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_about">Biz haqimizda</span></a></li>
-                        <li><a href="#mission"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_mission">Missiya</span></a></li>
-                        <li><a href="#staff"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_staff">Xodimlar</span></a></li>
-                        <li><a href="#projects"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_projects">Loyihalar</span></a></li>
-                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_contact">Aloqa</span></a></li>
-                    </ul>
+                <div class="blog-item">
+                    <h4>Plastik Ifloslanishdan Qutulish</h4>
+                    <p class="meta"><i class="fas fa-calendar"></i> 12.02.2026 | <i class="fas fa-clock"></i> 4 min</p>
+                    <p>Har yili millionlab tonna plastik okeanlarga tushadi...</p>
                 </div>
-                <div class="footer-col">
-                    <h3 class="i18n" data-key="footer_newsletter_title">Yangiliklar</h3>
-                    <p class="i18n" data-key="footer_newsletter_text">Yangiliklarimizdan xabardor bo'lish uchun obuna bo'ling.</p>
-                    <div style="margin-top: 15px; display: flex;">
-                        <input type="email" placeholder="Email manzilingiz" style="padding: 10px; border-radius: 4px 0 0 4px; border: none; width: 70%;">
-                        <button style="background: var(--primary-green); color: white; border: none; padding: 0 15px; border-radius: 0 4px 4px 0; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
-                    </div>
+                <div class="blog-item">
+                    <h4>Uy Daraxtlari: Qanday Ekish Kerak?</h4>
+                    <p class="meta"><i class="fas fa-calendar"></i> 10.02.2026 | <i class="fas fa-clock"></i> 6 min</p>
+                    <p>Uyingiz atrofida daraxt ekish - eng oddiy va samarali yashil ish...</p>
                 </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2026 yoshekologlar Barcha huquqlar himoyalangan. | <span class="i18n" data-key="footer_copyright">Yaratilgan: Ekologik jamoa tomonidan</span></p>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <!-- Chatbot Button - as <a> tag -->
-    <a href="ymthubai.html" class="chatbot-btn" title="EKO_ASSISTANT">
-        <i class="fas fa-robot"></i>
-    </a>
+    <!-- Audio Files (Hidden) -->
+    <audio id="ambientSound" loop>
+        <source src="https://cdn.freesound.org/previews/320/320126_4410044-lq.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="birdSound" loop>
+        <source src="https://cdn.freesound.org/previews/352/352111_6366450-lq.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="windSound" loop>
+        <source src="https://cdn.freesound.org/previews/121/121099_2193266-lq.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="waterSound" loop>
+        <source src="https://cdn.freesound.org/previews/351/351782_6477481-lq.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="carSound">
+        <source src="https://cdn.freesound.org/previews/531/531342_10274286-lq.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="clickSound">
+        <source src="https://cdn.freesound.org/previews/352/352802_6372189-lq.mp3" type="audio/mpeg">
+    </audio>
 
+    <!-- Three.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    
+    <!-- Main JavaScript -->
     <script>
-        // Initialize AOS
-        document.addEventListener('DOMContentLoaded', function() {
-            AOS.init({
-                duration: 800,
-                easing: 'ease-in-out',
-                once: true
-            });
-            
-            // Mobile Navigation Toggle
-            const hamburger = document.getElementById('hamburger');
-            const navLinks = document.getElementById('navLinks');
-            
-            hamburger.addEventListener('click', () => {
-                navLinks.classList.toggle('active');
-                hamburger.innerHTML = navLinks.classList.contains('active') 
-                    ? '<i class="fas fa-times"></i>' 
-                    : '<i class="fas fa-bars"></i>';
-            });
-            
-            // Close mobile menu when clicking a link
-            document.querySelectorAll('.nav-item').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('active');
-                    hamburger.innerHTML = '<i class="fas fa-bars"></i>';
-                });
-            });
-            
-            // Navigation active state
-            const sections = document.querySelectorAll('section');
-            const navItems = document.querySelectorAll('.nav-item');
-            
-            window.addEventListener('scroll', () => {
-                let current = '';
-                
-                sections.forEach(section => {
-                    const sectionTop = section.offsetTop - 100;
-                    if (pageYOffset >= sectionTop) {
-                        current = section.getAttribute('id');
-                    }
-                });
-                
-                navItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.getAttribute('href').slice(1) === current) {
-                        item.classList.add('active');
-                    }
-                });
-            });
-            
-            // Language Switcher
-            const translations = {
-                uz: {
-                    nav_home: "Bosh sahifa",
-                    nav_about: "Biz haqimizda",
-                    nav_mission: "Missiya",
-                    nav_staff: "Xodimlar",
-                    nav_projects: "Loyihalar",
-                    nav_contact: "Aloqa",
-                    hero_title: "Kelajakni Himoya Qilish",
-                    hero_subtitle: "Tabiatni muhofaza qilish va barqaror rivojlanish uchun innovatsion yechimlar",
-                    hero_btn_explore: "Loyihalarni ko'rish",
-                    hero_btn_contact: "Biz bilan bog'lanish",
-                    about_title: "Biz haqimizda",
-                    about_description: "EcoFuture - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.",
-                    about_subtitle: "Biz kimiz va nimani qilamiz",
-                    about_text1: "Yashil makon" loyihalari: Bo‘sh hududlarga ko‘chatlar ekish va ularni parvarish qilish.",
-                    about_text2: "Insonlarni o'zi yashab turgan hududini asrash va uni yashil zona qilishni singdiramiz.",
-                    about_text3: "Hasharlar va tozalash ishlari: Daryo bo‘ylari, xiyobonlar va tog‘li hududlarni chiqindilardan tozalash.",
-                    about_btn: "Hamkorlik qilish",
-                    mission_title: "Bizning Missiyamiz",
-                    mission_description: "Biz quyidagi yo'nalishlarda faol ish olib boramiz:",
-                    mission_card1_title: "O'rmonlarni Muhofaza Qilish",
-                    mission_card1_text: "O'rmonlarni qayta tiklash va yangi daraxtlar ekish orqali tabiatni asrab qolish.",
-                    mission_card2_title: "Toza Suv",
-                    mission_card2_text: "Suv manbalarini tozalash va suvdan oqilona foydalanishni targ'ib qilish.",
-                    mission_card3_title: "Qayta Tiklanadigan Energiya",
-                    mission_card3_text: "Quyosh va shamol energiyasidan foydalanish orqali atrof-muhitni ifloslantirmaslik.",
-                    mission_card4_title: "Qayta Ishlash",
-                    mission_card4_text: "Chiqindilarni kamaytirish va qayta ishlashni rag'batlantirish orqali barqaror kelajak yaratish.",
-                    staff_title: "Bizning Jamoa",
-                    staff_description: "Bizning jamoamiz - kelajakni yaratayotgan iqtidorli mutaxassislardan iborat.",
-                    projects_title: "Bizning Loyihalar",
-                    projects_description: "Dunyo bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.",
-                    project1_title: "Yashil Shaharlar",
-                    project1_text: "Shahar atrofidagi maydonlarni ko'kalamzorlashtirish va o'rmonlashtirish loyihasi.",
-                    project2_title: "Quyosh Energiyasi",
-                    project2_text: "Quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish loyihasi.",
-                    project3_title: "Suvni Tozalash",
-                    project3_text: "Sanoat chiqindilaridan suv manbalarini tozalash va qayta ishlash loyihasi.",
-                    project_btn: "Batafsil",
-                    contact_title: "Biz bilan bog'laning",
-                    contact_description: "Savollaringiz yoki takliflaringiz bo'lsa, quyidagi formani to'ldiring.",
-                    contact_address_title: "Manzil",
-                    contact_address: "Toshkent shahri, Yunusobod tumani, 123-usul",
-                    contact_phone_title: "Telefon",
-                    contact_phone: "+998 90 123 45 67",
-                    contact_email_title: "Email",
-                    contact_email: "info@ecofuture.uz",
-                    contact_hours_title: "Ish soatlari",
-                    contact_hours: "Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 15:00",
-                    contact_form_name: "Ismingiz",
-                    contact_form_email: "Email manzilingiz",
-                    contact_form_subject: "Mavzu",
-                    contact_form_message: "Xabar",
-                    contact_form_send: "Yuborish",
-                    footer_about: "Tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan ekologik yechimlar yetakchisi.",
-                    footer_links_title: "Foydali havolalar",
-                    footer_newsletter_title: "Yangiliklar",
-                    footer_newsletter_text: "Yangiliklarimizdan xabardor bo'lish uchun obuna bo'ling.",
-                    footer_copyright: "Yaratilgan: Ekologik jamoa tomonidan"
-                },
-                en: {
-                    nav_home: "Home",
-                    nav_about: "About",
-                    nav_mission: "Mission",
-                    nav_staff: "Staff",
-                    nav_projects: "Projects",
-                    nav_contact: "Contact",
-                    hero_title: "Protecting Our Future",
-                    hero_subtitle: "Innovative solutions for environmental protection and sustainable development",
-                    hero_btn_explore: "Explore Projects",
-                    hero_btn_contact: "Contact Us",
-                    about_title: "About Us",
-                    about_description: "EcoFuture is a leader in ecological solutions supporting environmental protection and sustainable development.",
-                    about_subtitle: "Who we are and what we do",
-                    about_text1: "Founded in 2015, EcoFuture works on projects aimed at environmental protection, sustainable development, and solving ecological problems.",
-                    about_text2: "Our team consists of ecologists, engineers, programmers, and social activists who work together to create new technologies and approaches.",
-                    about_text3: "Our mission is to help create a clean and healthy environment for future generations and develop ecological culture in society.",
-                    about_btn: "Collaborate",
-                    mission_title: "Our Mission",
-                    mission_description: "We are actively working in the following areas:",
-                    mission_card1_title: "Forest Conservation",
-                    mission_card1_text: "Preserving nature through forest restoration and planting new trees.",
-                    mission_card2_title: "Clean Water",
-                    mission_card2_text: "Cleaning water sources and promoting rational water use.",
-                    mission_card3_title: "Renewable Energy",
-                    mission_card3_text: "Using solar and wind energy to avoid environmental pollution.",
-                    mission_card4_title: "Recycling",
-                    mission_card4_text: "Creating a sustainable future by reducing waste and promoting recycling.",
-                    staff_title: "Our Team",
-                    staff_description: "Our team consists of talented specialists creating the future.",
-                    projects_title: "Our Projects",
-                    projects_description: "Get acquainted with our ecological projects implemented around the world.",
-                    project1_title: "Green Cities",
-                    project1_text: "A project to green and afforest areas around the city.",
-                    project2_title: "Solar Energy",
-                    project2_text: "A project to produce clean energy by installing solar panels.",
-                    project3_title: "Water Purification",
-                    project3_text: "A project to clean water sources from industrial waste and recycle them.",
-                    project_btn: "Details",
-                    contact_title: "Contact Us",
-                    contact_description: "If you have any questions or suggestions, please fill out the form below.",
-                    contact_address_title: "Address",
-                    contact_address: "123 Yunusabad Street, Tashkent City",
-                    contact_phone_title: "Phone",
-                    contact_phone: "+998 90 123 45 67",
-                    contact_email_title: "Email",
-                    contact_email: "info@ecofuture.uz",
-                    contact_hours_title: "Working Hours",
-                    contact_hours: "Monday-Friday: 9:00 - 18:00<br>Saturday: 10:00 - 15:00",
-                    contact_form_name: "Your Name",
-                    contact_form_email: "Your Email",
-                    contact_form_subject: "Subject",
-                    contact_form_message: "Message",
-                    contact_form_send: "Send",
-                    footer_about: "A leader in ecological solutions supporting environmental protection and sustainable development.",
-                    footer_links_title: "Useful Links",
-                    footer_newsletter_title: "Newsletter",
-                    footer_newsletter_text: "Subscribe to stay updated with our latest news.",
-                    footer_copyright: "Created by: Ecological Team"
-                },
-                ru: {
-                    nav_home: "Главная",
-                    nav_about: "О нас",
-                    nav_mission: "Миссия",
-                    nav_staff: "Сотрудники",
-                    nav_projects: "Проекты",
-                    nav_contact: "Контакты",
-                    hero_title: "Защита нашего будущего",
-                    hero_subtitle: "Инновационные решения для охраны окружающей среды и устойчивого развития",
-                    hero_btn_explore: "Посмотреть проекты",
-                    hero_btn_contact: "Связаться с нами",
-                    about_title: "О нас",
-                    about_description: "EcoFuture - лидер в области экологических решений, поддерживающих охрану окружающей среды и устойчивое развитие.",
-                    about_subtitle: "Кто мы и чем занимаемся",
-                    about_text1: "Основанная в 2015 году, EcoFuture работает над проектами, направленными на охрану окружающей среды, устойчивое развитие и решение экологических проблем.",
-                    about_text2: "Наша команда состоит из экологов, инженеров, программистов и общественных активистов, которые вместе создают новые технологии и подходы.",
-                    about_text3: "Наша миссия - помочь создать чистую и здоровую среду для будущих поколений и развивать экологическую культуру в обществе.",
-                    about_btn: "Сотрудничать",
-                    mission_title: "Наша миссия",
-                    mission_description: "Мы активно работаем в следующих направлениях:",
-                    mission_card1_title: "Охрана лесов",
-                    mission_card1_text: "Сохранение природы через восстановление лесов и посадку новых деревьев.",
-                    mission_card2_title: "Чистая вода",
-                    mission_card2_text: "Очистка источников воды и пропаганда рационального использования воды.",
-                    mission_card3_title: "Возобновляемая энергия",
-                    mission_card3_text: "Использование солнечной и ветровой энергии для предотвращения загрязнения окружающей среды.",
-                    mission_card4_title: "Переработка",
-                    mission_card4_text: "Создание устойчивого будущего путем сокращения отходов и поощрения переработки.",
-                    staff_title: "Наша команда",
-                    staff_description: "Наша команда состоит из талантливых специалистов, создающих будущее.",
-                    projects_title: "Наши проекты",
-                    projects_description: "Ознакомьтесь с нашими экологическими проектами, реализуемыми по всему миру.",
-                    project1_title: "Зеленые города",
-                    project1_text: "Проект по озеленению и лесопосадке территорий вокруг города.",
-                    project2_title: "Солнечная энергия",
-                    project2_text: "Проект по производству чистой энергии путем установки солнечных панелей.",
-                    project3_title: "Очистка воды",
-                    project3_text: "Проект по очистке источников воды от промышленных отходов и их переработке.",
-                    project_btn: "Подробнее",
-                    contact_title: "Свяжитесь с нами",
-                    contact_description: "Если у вас есть вопросы или предложения, пожалуйста, заполните форму ниже.",
-                    contact_address_title: "Адрес",
-                    contact_address: "г. Ташкент, ул. Юнусабад, 123",
-                    contact_phone_title: "Телефон",
-                    contact_phone: "+998 90 123 45 67",
-                    contact_email_title: "Email",
-                    contact_email: "info@ecofuture.uz",
-                    contact_hours_title: "Рабочие часы",
-                    contact_hours: "Пн-Пт: 9:00 - 18:00<br>Сб: 10:00 - 15:00",
-                    contact_form_name: "Ваше имя",
-                    contact_form_email: "Ваш email",
-                    contact_form_subject: "Тема",
-                    contact_form_message: "Сообщение",
-                    contact_form_send: "Отправить",
-                    footer_about: "Лидер в области экологических решений, поддерживающих охрану окружающей среды и устойчивое развитие.",
-                    footer_links_title: "Полезные ссылки",
-                    footer_newsletter_title: "Новостная рассылка",
-                    footer_newsletter_text: "Подпишитесь, чтобы быть в курсе наших последних новостей.",
-                    footer_copyright: "Создано: Экологической командой"
-                }
-            };
-            
-            // Set initial language based on browser settings or default to Uzbek
-            let currentLang = localStorage.getItem('language') || 'uz';
-            
-            // Set language buttons
-            document.querySelectorAll('.lang-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    currentLang = button.getAttribute('data-lang');
-                    localStorage.setItem('language', currentLang);
-                    applyLanguage(currentLang);
-                });
-                
-                if (button.getAttribute('data-lang') === currentLang) {
-                    button.classList.add('active');
-                }
-            });
-            
-            // Apply language function
-            function applyLanguage(lang) {
-                document.querySelectorAll('[data-key]').forEach(element => {
-                    const key = element.getAttribute('data-key');
-                    if (translations[lang] && translations[lang][key]) {
-                        if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
-                            element.placeholder = translations[lang][key];
-                        } else if (element.innerHTML.includes('<br>')) {
-                            element.innerHTML = translations[lang][key];
-                        } else {
-                            element.textContent = translations[lang][key];
-                        }
-                    }
-                });
+      // ========================================
+// GLOBAL VARIABLES
+// ========================================
+let scene, camera, renderer, controls;
+let currentSection = 'home';
+let isPanelOpen = false;
+let isMobile = false;
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let canJump = false;
+let joystickActive = false;
+let joystickData = { x: 0, y: 0 };
+let trees = [];
+let flowers = [];
+let grass = [];
+let birds = [];
+let clouds = [];
+let stars = [];
+let skyDome = null;
+let houses = [];
+let car = null;
+let audioContext = null;
+let sounds = {};
+let isAudioEnabled = true;
+
+// Movement speed - TEZROQ
+const MOVE_SPEED = 30.0;
+const JUMP_HEIGHT = 0.5;
+
+// Detect mobile
+function detectMobile() {
+    const toMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i
+    ];
+    
+    return toMatch.some((toMatchItem) => {
+        return navigator.userAgent.match(toMatchItem);
+    });
+}
+
+isMobile = detectMobile();
+
+// Section positions
+const sectionPositions = {
+    home: { x: 0, y: 2, z: 0 },
+    about: { x: -60, y: 2, z: 40 },
+    tips: { x: 60, y: 2, z: 40 },
+    projects: { x: 0, y: 2, z: -80 },
+    blog: { x: -50, y: 2, z: -60 },
+    news: { x: 50, y: 2, z: -60 }
+};
+
+// Section info
+const sectionInfo = {
+    home: {
+        title: "🌲 O'rmon Kirishi",
+        description: isMobile ? 
+            "Xush kelibsiz! Joystick bilan harakatlaning, pastdagi yashil tugmani bosing." : 
+            "Xush kelibsiz! Sichqonchani bosib harakatlang yoki tugmalardan foydalaning."
+    },
+    about: {
+        title: "🌊 Daryo Bo'yida",
+        description: "Bu yerda biz haqimizda ma'lumot topasiz. Suv tozaligi - hayot manbai."
+    },
+    tips: {
+        title: "💡 Ochiq Maydon",
+        description: "Kundalik hayotingizni yashillantirish uchun foydali maslahatlar."
+    },
+    projects: {
+        title: "🏔️ Tog' Yonbag'iri",
+        description: "Bizning muvaffaqiyatli ekologik loyihalarimiz."
+    },
+    blog: {
+        title: "📚 Kutubxona",
+        description: "Ekologik bilimlar va maqolalar to'plami."
+    },
+    news: {
+        title: "📰 Toshlar Maydoni",
+        description: "Eng so'nggi yangiliklar va tadbirlar."
+    }
+};
+
+// ========================================
+// AUDIO SETUP
+// ========================================
+function setupAudio() {
+    try {
+        // Initialize Web Audio API
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        
+        // Load sounds
+        sounds = {
+            ambient: document.getElementById('ambientSound'),
+            birds: document.getElementById('birdSound'),
+            wind: document.getElementById('windSound'),
+            water: document.getElementById('waterSound'),
+            car: document.getElementById('carSound'),
+            click: document.getElementById('clickSound')
+        };
+        
+        // Set volumes
+        sounds.ambient.volume = 0.3;
+        sounds.birds.volume = 0.4;
+        sounds.wind.volume = 0.2;
+        sounds.water.volume = 0.5;
+        sounds.car.volume = 0.6;
+        sounds.click.volume = 0.3;
+        
+        // Play ambient sounds
+        setTimeout(() => {
+            if (isAudioEnabled) {
+                sounds.ambient.play();
+                sounds.birds.play();
+                sounds.wind.play();
             }
-            
-            // Initialize with saved language
-            applyLanguage(currentLang);
-            
-            // Form submission handler
-            const contactForm = document.querySelector('.contact-form .btn');
-            if (contactForm) {
-                contactForm.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    alert(translations[currentLang].contact_form_send + '!');
-                    
-                    // Reset form
-                    document.getElementById('name').value = '';
-                    document.getElementById('email').value = '';
-                    document.getElementById('subject').value = '';
-                    document.getElementById('message').value = '';
-                });
+        }, 1000);
+        
+        console.log('🎵 Audio tizimi ishga tushdi!');
+    } catch (e) {
+        console.log('⚠️ Audio qo\'llab-quvvatlanmaydi:', e);
+    }
+}
+
+// Play sound effect
+function playSound(name) {
+    if (!isAudioEnabled || !sounds[name]) return;
+    
+    try {
+        const sound = sounds[name];
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Audio error:', e));
+    } catch (e) {
+        console.log('Sound play error:', e);
+    }
+}
+
+// Toggle audio
+function toggleAudio() {
+    isAudioEnabled = !isAudioEnabled;
+    
+    const audioBtn = document.getElementById('audioToggle');
+    if (audioBtn) {
+        audioBtn.classList.toggle('muted', !isAudioEnabled);
+    }
+    
+    if (isAudioEnabled) {
+        sounds.ambient.play();
+        sounds.birds.play();
+        sounds.wind.play();
+    } else {
+        sounds.ambient.pause();
+        sounds.birds.pause();
+        sounds.wind.pause();
+    }
+}
+
+// ========================================
+// INITIALIZATION
+// ========================================
+function init() {
+    // Scene
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x88cc88, 100, 400);
+    
+    // Camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 1.8, 5);
+    
+    // Renderer - HIGH QUALITY
+    renderer = new THREE.WebGLRenderer({ 
+        canvas: document.getElementById('forest-canvas'),
+        antialias: true,
+        alpha: true,
+        logarithmicDepthBuffer: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    // Controls
+    controls = new THREE.PointerLockControls(camera, document.body);
+    
+    // Click to start (Desktop)
+    if (!isMobile) {
+        document.addEventListener('click', () => {
+            if (!controls.isLocked) {
+                controls.lock();
             }
         });
+    }
+    
+    scene.add(controls.getObject());
+    
+    // Setup audio first
+    setupAudio();
+    
+    // Lights - REALISTIC
+    addLights();
+    
+    // Sky - REALISTIC SKY DOME
+    createSkyDome();
+    
+    // Stars
+    createStars();
+    
+    // Clouds
+    createClouds();
+    
+    // Environment - REALISTIC
+    createEnvironment();
+    
+    // Houses for each section
+    createHouses();
+    
+    // Sections
+    createSections();
+    
+    // Events
+    addEventListeners();
+    
+    // Start
+    animate();
+    
+    // Update UI
+    updateSectionInfo();
+    
+    // Hide start button on mobile after init
+    if (isMobile) {
+        setTimeout(() => {
+            const startBtn = document.getElementById('startButton');
+            if (startBtn) {
+                startBtn.style.display = 'none';
+            }
+        }, 3000);
+    }
+}
+
+// ========================================
+// CREATE REALISTIC SKY DOME
+// ========================================
+function createSkyDome() {
+    // Sky gradient dome
+    const skyGeo = new THREE.SphereGeometry(1000, 64, 32);
+    const skyMat = new THREE.MeshPhongMaterial({
+        side: THREE.BackSide,
+        fog: false,
+        transparent: true,
+        opacity: 0.9
+    });
+    
+    // Create gradient texture for sky
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+    
+    // Create radial gradient (blue sky)
+    const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, canvas.width / 2
+    );
+    gradient.addColorStop(0, '#87CEEB'); // Light blue (zenith)
+    gradient.addColorStop(0.6, '#4682B4'); // Medium blue
+    gradient.addColorStop(1, '#1E90FF'); // Deep blue (horizon)
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add some clouds to sky texture
+    for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.2 + 0.1})`;
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.6 + canvas.height * 0.2;
+        const size = Math.random() * 100 + 50;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    const skyTexture = new THREE.CanvasTexture(canvas);
+    skyMat.map = skyTexture;
+    
+    skyDome = new THREE.Mesh(skyGeo, skyMat);
+    scene.add(skyDome);
+}
+
+// ========================================
+// CREATE STARS
+// ========================================
+function createStars() {
+    const starGeometry = new THREE.BufferGeometry();
+    const starMaterial = new THREE.PointsMaterial({
+        color: 0xFFFFFF,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: true
+    });
+    
+    const starVertices = [];
+    for (let i = 0; i < 5000; i++) {
+        const x = (Math.random() - 0.5) * 2000;
+        const y = Math.random() * 1000 + 100;
+        const z = (Math.random() - 0.5) * 2000;
+        starVertices.push(x, y, z);
+    }
+    
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+}
+
+// ========================================
+// CREATE CLOUDS
+// ========================================
+function createClouds() {
+    for (let i = 0; i < 30; i++) {
+        const cloudSize = 15 + Math.random() * 10;
+        
+        // Create cloud cluster
+        const cloudGroup = new THREE.Group();
+        
+        // Multiple spheres for fluffy cloud effect
+        for (let j = 0; j < 8; j++) {
+            const sphereGeo = new THREE.SphereGeometry(3 + Math.random() * 2, 16, 16);
+            const sphereMat = new THREE.MeshPhongMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.8 - Math.random() * 0.3,
+                shininess: 20
+            });
+            const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+            
+            // Random position within cloud cluster
+            sphere.position.set(
+                (Math.random() - 0.5) * cloudSize,
+                (Math.random() - 0.5) * cloudSize * 0.5,
+                (Math.random() - 0.5) * cloudSize
+            );
+            
+            sphere.castShadow = true;
+            cloudGroup.add(sphere);
+        }
+        
+        // Position cloud in sky
+        const distance = 150 + Math.random() * 200;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * distance;
+        const z = Math.sin(angle) * distance;
+        const y = 80 + Math.random() * 40;
+        
+        cloudGroup.position.set(x, y, z);
+        cloudGroup.scale.set(1 + Math.random(), 1 + Math.random(), 1 + Math.random());
+        
+        scene.add(cloudGroup);
+        clouds.push({
+            mesh: cloudGroup,
+            speed: 0.002 + Math.random() * 0.003,
+            direction: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+// ========================================
+// ADD LIGHTS (Realistic - ENHANCED)
+// ========================================
+function addLights() {
+    // Ambient light (soft)
+    const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambient);
+    
+    // Directional light (Sun - realistic)
+    const sun = new THREE.DirectionalLight(0xffeecc, 1.5);
+    sun.position.set(100, 150, 100);
+    sun.castShadow = true;
+    
+    // Enhanced shadow settings for realism
+    sun.shadow.mapSize.width = 4096;
+    sun.shadow.mapSize.height = 4096;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 1000;
+    sun.shadow.camera.left = -200;
+    sun.shadow.camera.right = 200;
+    sun.shadow.camera.top = 200;
+    sun.shadow.camera.bottom = -200;
+    sun.shadow.bias = -0.0001;
+    sun.shadow.normalBias = 0.01;
+    
+    scene.add(sun);
+    
+    // Hemisphere light (sky/ground) - ENHANCED
+    const hemi = new THREE.HemisphereLight(0x88ccff, 0x448822, 0.8);
+    scene.add(hemi);
+    
+    // Additional fill lights for realism
+    const fillLight1 = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight1.position.set(-80, 60, 60);
+    fillLight1.castShadow = true;
+    scene.add(fillLight1);
+    
+    const fillLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight2.position.set(80, 60, -60);
+    fillLight2.castShadow = true;
+    scene.add(fillLight2);
+    
+    // Warm fill light (sunset effect)
+    const warmLight = new THREE.DirectionalLight(0xffaa66, 0.3);
+    warmLight.position.set(50, 40, -50);
+    scene.add(warmLight);
+}
+
+// ========================================
+// CREATE ENVIRONMENT (Realistic - ENHANCED)
+// ========================================
+function createEnvironment() {
+    // Ground with realistic texture
+    const groundGeo = new THREE.PlaneGeometry(800, 800, 200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ 
+        color: 0x6B8E23,
+        roughness: 1,
+        metalness: 0,
+        bumpScale: 0.1
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.1;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    
+    // Add detailed grass patches
+    generateDetailedGrass(500);
+    
+    // Trees (Realistic - ENHANCED)
+    generateRealisticTrees(200);
+    
+    // Flowers (More variety)
+    generateFlowers(150);
+    
+    // Rocks (More realistic)
+    generateRealisticRocks(80);
+    
+    // Water (River - ENHANCED)
+    createRealisticWater();
+    
+    // Birds (More realistic)
+    generateRealisticBirds(30);
+}
+
+// ========================================
+// GENERATE DETAILED GRASS
+// ========================================
+function generateDetailedGrass(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 180 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        // Create multiple grass blades in cluster
+        const clusterSize = 3 + Math.floor(Math.random() * 3);
+        
+        for (let j = 0; j < clusterSize; j++) {
+            const bladeHeight = 0.4 + Math.random() * 0.8;
+            const bladeGeo = new THREE.CylinderGeometry(0.02, 0.08, bladeHeight, 6, 1, true);
+            const bladeMat = new THREE.MeshStandardMaterial({ 
+                color: j === 0 ? 0x4A7A3C : 0x558833,
+                roughness: 1,
+                flatShading: true
+            });
+            const blade = new THREE.Mesh(bladeGeo, bladeMat);
+            blade.position.set(
+                x + (Math.random() - 0.5) * 0.5,
+                bladeHeight / 2,
+                z + (Math.random() - 0.5) * 0.5
+            );
+            blade.rotation.y = Math.random() * Math.PI;
+            blade.rotation.z = (Math.random() - 0.5) * 0.2;
+            blade.castShadow = true;
+            scene.add(blade);
+            
+            grass.push(blade);
+        }
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC TREES (ENHANCED)
+// ========================================
+function generateRealisticTrees(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 200 + 20;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        const height = 10 + Math.random() * 15;
+        const scale = 0.8 + Math.random() * 0.7;
+        
+        // Trunk with bark texture simulation
+        const trunkGeo = new THREE.CylinderGeometry(1.2, 1.8, height, 12);
+        const trunkMat = new THREE.MeshStandardMaterial({ 
+            color: 0x5D4037,
+            roughness: 1,
+            metalness: 0
+        });
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.set(x, height / 2 - 0.1, z);
+        trunk.scale.set(scale, scale, scale);
+        trunk.castShadow = true;
+        trunk.receiveShadow = true;
+        scene.add(trunk);
+        
+        // Multiple foliage layers with variation
+        const foliageLayers = 4 + Math.floor(Math.random() * 3);
+        
+        for (let layer = 0; layer < foliageLayers; layer++) {
+            const layerHeight = height * 0.25 + (layer * height * 0.2);
+            const layerScale = 1 - (layer * 0.15);
+            
+            const foliageGeo = new THREE.ConeGeometry(6 * layerScale, height * 0.5 * layerScale, 12);
+            const foliageMat = new THREE.MeshStandardMaterial({ 
+                color: layer === 0 ? 0x1B5E20 : (layer === 1 ? 0x2E7D32 : 0x388E3C),
+                roughness: 1,
+                metalness: 0,
+                transparent: true,
+                opacity: 0.95
+            });
+            const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+            foliage.position.set(
+                x + (Math.random() - 0.5) * 0.5,
+                layerHeight + height * 0.1 - 0.1,
+                z + (Math.random() - 0.5) * 0.5
+            );
+            foliage.scale.set(scale * layerScale, scale * layerScale * 0.8, scale * layerScale);
+            foliage.rotation.y = Math.random() * Math.PI;
+            foliage.castShadow = true;
+            scene.add(foliage);
+        }
+        
+        // Add some moss on trunk bottom
+        if (Math.random() > 0.5) {
+            const mossGeo = new THREE.SphereGeometry(1.5, 16, 16);
+            const mossMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4A7A3C,
+                roughness: 1
+            });
+            const moss = new THREE.Mesh(mossGeo, mossMat);
+            moss.position.set(x, height * 0.1, z);
+            moss.scale.set(scale * 0.8, scale * 0.3, scale * 0.8);
+            moss.castShadow = true;
+            scene.add(moss);
+        }
+        
+        trees.push({ trunk, position: { x, z } });
+    }
+}
+
+// ========================================
+// GENERATE FLOWERS (ENHANCED)
+// ========================================
+function generateFlowers(count) {
+    const flowerTypes = [
+        { color: 0xFF69B4, name: 'Rose' },      // Pink
+        { color: 0xFF1493, name: 'Carnation' }, // Deep Pink
+        { color: 0x9370DB, name: 'Lavender' },  // Purple
+        { color: 0x8A2BE2, name: 'Violet' },    // Blue Violet
+        { color: 0x4169E1, name: 'Bluebell' },  // Royal Blue
+        { color: 0xFFD700, name: 'Sunflower' }, // Gold
+        { color: 0xFF4500, name: 'Poppy' }      // Orange Red
+    ];
+    
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 140 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
+        
+        // Flower stem with leaves
+        const stemGeo = new THREE.CylinderGeometry(0.06, 0.1, 0.6, 8);
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x3A5F0B });
+        const stem = new THREE.Mesh(stemGeo, stemMat);
+        stem.position.set(x, 0.4, z);
+        stem.castShadow = true;
+        scene.add(stem);
+        
+        // Add leaves
+        for (let j = 0; j < 2 + Math.floor(Math.random() * 2); j++) {
+            const leafGeo = new THREE.SphereGeometry(0.2, 16, 16);
+            const leafMat = new THREE.MeshStandardMaterial({ 
+                color: 0x2D5016,
+                transparent: true,
+                opacity: 0.9
+            });
+            const leaf = new THREE.Mesh(leafGeo, leafMat);
+            leaf.position.set(
+                x + (Math.random() - 0.5) * 0.3,
+                0.3 + j * 0.2,
+                z + (Math.random() - 0.5) * 0.3
+            );
+            leaf.scale.set(0.8, 0.3, 1.2);
+            leaf.rotation.y = Math.random() * Math.PI;
+            leaf.castShadow = true;
+            scene.add(leaf);
+        }
+        
+        // Flower head with petals
+        const headGeo = new THREE.SphereGeometry(0.25, 32, 32);
+        const headMat = new THREE.MeshStandardMaterial({ 
+            color: type.color,
+            roughness: 0.5,
+            metalness: 0.2
+        });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.set(x, 0.85, z);
+        head.castShadow = true;
+        scene.add(head);
+        
+        flowers.push({ stem, head });
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC ROCKS
+// ========================================
+function generateRealisticRocks(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 160 + 10;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        
+        // Create irregular rock shape
+        const rockGeo = new THREE.DodecahedronGeometry(2.5 + Math.random() * 3, 2);
+        const rockMat = new THREE.MeshStandardMaterial({ 
+            color: 0x777777,
+            roughness: 1,
+            metalness: 0.1
+        });
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.position.set(x, 1.8 + Math.random() * 3, z);
+        rock.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+        );
+        rock.scale.set(
+            0.8 + Math.random() * 0.6,
+            0.8 + Math.random() * 0.6,
+            0.8 + Math.random() * 0.6
+        );
+        rock.castShadow = true;
+        rock.receiveShadow = true;
+        scene.add(rock);
+        
+        // Add moss on some rocks
+        if (Math.random() > 0.6) {
+            const mossGeo = new THREE.SphereGeometry(1 + Math.random(), 16, 16);
+            const mossMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4A7A3C,
+                roughness: 1,
+                transparent: true,
+                opacity: 0.7
+            });
+            const moss = new THREE.Mesh(mossGeo, mossMat);
+            moss.position.set(
+                x + (Math.random() - 0.5) * 1.5,
+                rock.position.y + 1 + Math.random(),
+                z + (Math.random() - 0.5) * 1.5
+            );
+            moss.scale.set(1.5, 0.5, 1.5);
+            scene.add(moss);
+        }
+    }
+}
+
+// ========================================
+// GENERATE REALISTIC BIRDS
+// ========================================
+function generateRealisticBirds(count) {
+    for (let i = 0; i < count; i++) {
+        const dist = Math.random() * 120 + 20;
+        const angle = Math.random() * Math.PI * 2;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        const y = 15 + Math.random() * 30;
+        
+        // Create bird with wings
+        const birdGroup = new THREE.Group();
+        
+        // Body
+        const bodyGeo = new THREE.SphereGeometry(0.3, 16, 16);
+        const bodyMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4682B4,
+            roughness: 0.7
+        });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        birdGroup.add(body);
+        
+        // Wings
+        const wingGeo = new THREE.ConeGeometry(0.1, 0.8, 8);
+        const wingMat = new THREE.MeshStandardMaterial({ 
+            color: 0x2F4F4F,
+            roughness: 0.8
+        });
+        
+        const leftWing = new THREE.Mesh(wingGeo, wingMat);
+        leftWing.position.set(-0.4, 0, 0);
+        leftWing.rotation.z = -Math.PI / 4;
+        birdGroup.add(leftWing);
+        
+        const rightWing = new THREE.Mesh(wingGeo, wingMat);
+        rightWing.position.set(0.4, 0, 0);
+        rightWing.rotation.z = Math.PI / 4;
+        birdGroup.add(rightWing);
+        
+        // Tail
+        const tailGeo = new THREE.ConeGeometry(0.08, 0.4, 8);
+        const tailMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4682B4,
+            roughness: 0.7
+        });
+        const tail = new THREE.Mesh(tailGeo, tailMat);
+        tail.position.set(0, -0.2, -0.3);
+        tail.rotation.x = Math.PI / 3;
+        birdGroup.add(tail);
+        
+        birdGroup.position.set(x, y, z);
+        birdGroup.rotation.z = Math.PI / 2;
+        birdGroup.rotation.y = Math.random() * Math.PI;
+        scene.add(birdGroup);
+        
+        birds.push({
+            mesh: birdGroup,
+            leftWing: leftWing,
+            rightWing: rightWing,
+            speed: 0.01 + Math.random() * 0.03,
+            angle: Math.random() * Math.PI * 2,
+            radius: 20 + Math.random() * 15,
+            height: y,
+            center: { x: x, z: z },
+            wingAngle: 0
+        });
+    }
+}
+
+// ========================================
+// CREATE REALISTIC WATER
+// ========================================
+function createRealisticWater() {
+    const waterGeo = new THREE.PlaneGeometry(120, 400, 128, 128);
+    const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x4682B4,
+        roughness: 0.1,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.8,
+        envMap: createWaterReflection()
+    });
+    const water = new THREE.Mesh(waterGeo, waterMat);
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(-60, 0.1, 40);
+    water.receiveShadow = true;
+    scene.add(water);
+    
+    // Play water sound near river
+    playSound('water');
+}
+
+function createWaterReflection() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Create water reflection gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+    gradient.addColorStop(0, '#87CEEB');
+    gradient.addColorStop(0.5, '#4682B4');
+    gradient.addColorStop(1, '#1E90FF');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // Add wave patterns
+    for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1})`;
+        const y = Math.random() * 512;
+        const height = Math.random() * 20 + 5;
+        ctx.fillRect(0, y, 512, height);
+    }
+    
+    return new THREE.CanvasTexture(canvas);
+}
+
+// ========================================
+// CREATE HOUSES FOR EACH SECTION
+// ========================================
+function createHouses() {
+    // House for "About" section (Wooden house by river)
+    createHouse(sectionPositions.about, {
+        type: 'wooden',
+        color: 0x8B4513,
+        size: 1.5,
+        hasChimney: true,
+        hasWindows: true
+    });
+    
+    // House for "Tips" section (Modern eco-house)
+    createHouse(sectionPositions.tips, {
+        type: 'modern',
+        color: 0x3498DB,
+        size: 1.3,
+        hasSolarPanels: true,
+        hasGarden: true
+    });
+    
+    // House for "Projects" section (Mountain cabin)
+    createHouse(sectionPositions.projects, {
+        type: 'cabin',
+        color: 0x5D4037,
+        size: 1.4,
+        hasFireplace: true,
+        hasPorch: true
+    });
+    
+    // House for "Blog" section (Library house)
+    createHouse(sectionPositions.blog, {
+        type: 'library',
+        color: 0x2C3E50,
+        size: 1.6,
+        hasBooks: true,
+        hasLargeWindows: true
+    });
+    
+    // House for "News" section (Stone house)
+    createHouse(sectionPositions.news, {
+        type: 'stone',
+        color: 0x777777,
+        size: 1.5,
+        hasTower: true,
+        hasBalcony: true
+    });
+}
+
+function createHouse(position, config) {
+    const houseGroup = new THREE.Group();
+    
+    // Main house structure
+    const houseGeo = new THREE.BoxGeometry(10 * config.size, 8 * config.size, 10 * config.size);
+    const houseMat = new THREE.MeshStandardMaterial({ 
+        color: config.color,
+        roughness: 0.8
+    });
+    const house = new THREE.Mesh(houseGeo, houseMat);
+    house.position.y = 4 * config.size;
+    house.castShadow = true;
+    house.receiveShadow = true;
+    houseGroup.add(house);
+    
+    // Roof
+    const roofGeo = new THREE.ConeGeometry(7 * config.size, 4 * config.size, 4);
+    const roofMat = new THREE.MeshStandardMaterial({ 
+        color: 0xA52A2A,
+        roughness: 0.9
+    });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = 8 * config.size + 2 * config.size;
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    houseGroup.add(roof);
+    
+    // Door
+    const doorGeo = new THREE.BoxGeometry(2 * config.size, 4 * config.size, 0.5 * config.size);
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+    const door = new THREE.Mesh(doorGeo, doorMat);
+    door.position.set(0, 2 * config.size, 5 * config.size + 0.1);
+    door.castShadow = true;
+    houseGroup.add(door);
+    
+    // Windows
+    if (config.hasWindows) {
+        const windowGeo = new THREE.BoxGeometry(2 * config.size, 2 * config.size, 0.3 * config.size);
+        const windowMat = new THREE.MeshStandardMaterial({ 
+            color: 0x87CEEB,
+            transparent: true,
+            opacity: 0.7
+        });
+        
+        // Front windows
+        const window1 = new THREE.Mesh(windowGeo, windowMat);
+        window1.position.set(-3 * config.size, 3 * config.size, 5 * config.size + 0.1);
+        houseGroup.add(window1);
+        
+        const window2 = new THREE.Mesh(windowGeo, windowMat);
+        window2.position.set(3 * config.size, 3 * config.size, 5 * config.size + 0.1);
+        houseGroup.add(window2);
+        
+        // Side windows
+        const window3 = new THREE.Mesh(windowGeo, windowMat);
+        window3.position.set(5 * config.size + 0.1, 3 * config.size, -3 * config.size);
+        window3.rotation.y = Math.PI / 2;
+        houseGroup.add(window3);
+        
+        const window4 = new THREE.Mesh(windowGeo, windowMat);
+        window4.position.set(5 * config.size + 0.1, 3 * config.size, 3 * config.size);
+        window4.rotation.y = Math.PI / 2;
+        houseGroup.add(window4);
+    }
+    
+    // Chimney
+    if (config.hasChimney) {
+        const chimneyGeo = new THREE.CylinderGeometry(0.8 * config.size, 0.8 * config.size, 3 * config.size, 8);
+        const chimneyMat = new THREE.MeshStandardMaterial({ color: 0x696969 });
+        const chimney = new THREE.Mesh(chimneyGeo, chimneyMat);
+        chimney.position.set(-3 * config.size, 8 * config.size + 1.5 * config.size, -3 * config.size);
+        chimney.castShadow = true;
+        houseGroup.add(chimney);
+    }
+    
+    // Solar panels
+    if (config.hasSolarPanels) {
+        const panelGeo = new THREE.BoxGeometry(8 * config.size, 0.3 * config.size, 4 * config.size);
+        const panelMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const panel = new THREE.Mesh(panelGeo, panelMat);
+        panel.position.set(0, 8 * config.size + 2.5 * config.size, 0);
+        panel.rotation.x = Math.PI / 6;
+        panel.castShadow = true;
+        houseGroup.add(panel);
+    }
+    
+    // Position house
+    houseGroup.position.set(position.x, position.y, position.z);
+    scene.add(houseGroup);
+    
+    houses.push({
+        mesh: houseGroup,
+        type: config.type,
+        position: position
+    });
+}
+
+// ========================================
+// CREATE SECTIONS
+// ========================================
+function createSections() {
+    Object.keys(sectionPositions).forEach(section => {
+        const pos = sectionPositions[section];
+        
+        // Marker with enhanced glow
+        const markerGeo = new THREE.SphereGeometry(3, 64, 64);
+        const markerMat = new THREE.MeshStandardMaterial({
+            color: 0x2ecc71,
+            emissive: 0x22aa44,
+            emissiveIntensity: 0.8,
+            transparent: true,
+            opacity: 0.9
+        });
+        const marker = new THREE.Mesh(markerGeo, markerMat);
+        marker.position.set(pos.x, pos.y + 3, pos.z);
+        marker.userData = { section };
+        scene.add(marker);
+        
+        // Add section name plate
+        const plateGeo = new THREE.PlaneGeometry(15, 4);
+        const plateMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide
+        });
+        const plate = new THREE.Mesh(plateGeo, plateMat);
+        plate.position.set(pos.x, pos.y + 5, pos.z);
+        plate.rotation.y = Math.PI;
+        scene.add(plate);
+    });
+}
+
+// ========================================
+// SMOOTH MOVE TO SECTION WITH CAR ANIMATION
+// ========================================
+function moveToSection(sectionName) {
+    if (!sectionPositions[sectionName] || currentSection === sectionName) return;
+    
+    const target = sectionPositions[sectionName];
+    const destinationName = sectionInfo[sectionName].title;
+    
+    // Update destination info in loading overlay
+    const destInfo = document.getElementById('destinationInfo');
+    if (destInfo) {
+        destInfo.textContent = `${destinationName}ga borilyapti...`;
+    }
+    
+    // Show loading overlay with car animation
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('active');
+    }
+    
+    // Play car sound
+    playSound('car');
+    
+    // Unlock controls during transition
+    if (controls.isLocked) {
+        controls.unlock();
+    }
+    
+    // Wait for car animation to complete (4 seconds)
+    setTimeout(() => {
+        // Smooth camera movement with path
+        const duration = 2;
+        
+        gsap.to(camera.position, {
+            x: target.x,
+            y: target.y + 1.8,
+            z: target.z + 10,
+            duration: duration,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                camera.lookAt(target.x, target.y, target.z);
+            },
+            onComplete: () => {
+                currentSection = sectionName;
+                updateSectionInfo();
+                
+                // Hide loading overlay
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('active');
+                }
+                
+                // Lock controls again on desktop
+                if (!isMobile) {
+                    setTimeout(() => {
+                        controls.lock();
+                    }, 500);
+                }
+                
+                // Play arrival sound
+                playSound('click');
+            }
+        });
+    }, 4000); // Wait for car animation
+}
+
+// ========================================
+// UPDATE SECTION INFO
+// ========================================
+function updateSectionInfo() {
+    const info = sectionInfo[currentSection];
+    document.getElementById('sectionTitle').textContent = info.title;
+    document.getElementById('sectionDescription').textContent = info.description;
+}
+
+// ========================================
+// OPEN CONTENT PANEL
+// ========================================
+function openContentPanel() {
+    if (currentSection === 'home') return;
+    
+    const panel = document.getElementById('contentPanel');
+    const body = document.getElementById('contentBody');
+    const title = document.getElementById('panelTitle');
+    
+    // Set content
+    let content = '';
+    let titleText = '';
+    
+    switch(currentSection) {
+        case 'about':
+            content = document.getElementById('aboutContent').innerHTML;
+            titleText = '🌊 Biz Haqimizda';
+            break;
+        case 'tips':
+            content = document.getElementById('tipsContent').innerHTML;
+            titleText = '💡 Yashil Maslahatlar';
+            break;
+        case 'projects':
+            content = document.getElementById('projectsContent').innerHTML;
+            titleText = '🏔️ Loyihalar';
+            break;
+        case 'blog':
+            content = document.getElementById('blogContent').innerHTML;
+            titleText = '📚 Blog';
+            break;
+        case 'news':
+            content = document.getElementById('newsContent').innerHTML;
+            titleText = '📰 Yangiliklar';
+            break;
+    }
+    
+    body.innerHTML = content;
+    title.textContent = titleText;
+    
+    panel.classList.add('active');
+    isPanelOpen = true;
+    
+    // Unlock controls
+    if (controls.isLocked) {
+        controls.unlock();
+    }
+    
+    // Play click sound
+    playSound('click');
+}
+
+// ========================================
+// CLOSE CONTENT PANEL
+// ========================================
+function closeContentPanel() {
+    document.getElementById('contentPanel').classList.remove('active');
+    isPanelOpen = false;
+    
+    // Lock controls on desktop
+    if (!isMobile && !controls.isLocked) {
+        setTimeout(() => {
+            controls.lock();
+        }, 500);
+    }
+    
+    // Play click sound
+    playSound('click');
+}
+
+// ========================================
+// SETUP JOYSTICK (Mobile) - FIXED
+// ========================================
+function setupJoystick() {
+    const joystickContainer = document.getElementById('joystickContainer');
+    const joystickThumb = document.querySelector('.joystick-thumb');
+    
+    if (!joystickContainer || !joystickThumb) return;
+    
+    const baseRect = joystickContainer.getBoundingClientRect();
+    const baseCenter = {
+        x: baseRect.left + baseRect.width / 2,
+        y: baseRect.top + baseRect.height / 2
+    };
+    const maxDistance = baseRect.width / 2 - 25;
+    
+    let isDragging = false;
+    
+    function handleTouchStart(e) {
+        e.preventDefault();
+        isDragging = true;
+        joystickActive = true;
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const dx = touch.clientX - baseCenter.x;
+        const dy = touch.clientY - baseCenter.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > maxDistance) {
+            const angle = Math.atan2(dy, dx);
+            joystickData.x = Math.cos(angle);
+            joystickData.y = Math.sin(angle);
+            
+            const limitedX = Math.cos(angle) * maxDistance;
+            const limitedY = Math.sin(angle) * maxDistance;
+            joystickThumb.style.transform = `translate(calc(-50% + ${limitedX}px), calc(-50% + ${limitedY}px))`;
+        } else {
+            joystickData.x = dx / maxDistance;
+            joystickData.y = dy / maxDistance;
+            
+            joystickThumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        }
+    }
+    
+    function handleTouchEnd() {
+        isDragging = false;
+        joystickActive = false;
+        joystickData.x = 0;
+        joystickData.y = 0;
+        joystickThumb.style.transform = 'translate(-50%, -50%)';
+        document.body.style.overflow = 'auto';
+    }
+    
+    joystickContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    joystickContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    joystickContainer.addEventListener('touchend', handleTouchEnd);
+    joystickContainer.addEventListener('touchcancel', handleTouchEnd);
+}
+
+// ========================================
+// ADD EVENT LISTENERS - FIXED FOR MOBILE
+// ========================================
+function addEventListeners() {
+    // Desktop nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const section = e.currentTarget.dataset.section;
+            moveToSection(section);
+        });
+    });
+    
+    // Mobile nav toggle
+    const mobileNavToggle = document.getElementById('mobileNavToggle');
+    const mobileNavMenu = document.getElementById('mobileNavMenu');
+    
+    if (mobileNavToggle && mobileNavMenu) {
+        mobileNavToggle.addEventListener('click', () => {
+            mobileNavMenu.classList.toggle('active');
+        });
+        
+        // Mobile nav items
+        document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const section = e.currentTarget.dataset.section;
+                moveToSection(section);
+                mobileNavMenu.classList.remove('active');
+            });
+        });
+    }
+    
+    // Action button (Mobile) - FIXED
+    const mobileActionButton = document.getElementById('mobileActionButton');
+    if (mobileActionButton) {
+        mobileActionButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            openContentPanel();
+        });
+        
+        // Also add touch event for better mobile support
+        mobileActionButton.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            openContentPanel();
+        });
+    }
+    
+    // Read button (Desktop)
+    const desktopReadButton = document.getElementById('desktopReadButton');
+    if (desktopReadButton) {
+        desktopReadButton.addEventListener('click', openContentPanel);
+    }
+    
+    // Close panel
+    const closePanel = document.getElementById('closePanel');
+    if (closePanel) {
+        closePanel.addEventListener('click', closeContentPanel);
+    }
+    
+    // Start button (Mobile)
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startButton.style.display = 'none';
+            alert('🎮 O\'rmonni o\'rganishni boshladik!\n\n• Joystick bilan harakatlaning\n• Pastdagi yashil tugma - O\'qish\n• Pastdagi kompas - Bo\'limlar');
+        });
+    }
+    
+    // Audio toggle button
+    const audioToggle = document.getElementById('audioToggle');
+    if (audioToggle) {
+        audioToggle.addEventListener('click', toggleAudio);
+    }
+    
+    // Keyboard (Desktop)
+    if (!isMobile) {
+        document.addEventListener('keydown', (e) => {
+            if (isPanelOpen) return;
+            
+            switch(e.key.toLowerCase()) {
+                case 'escape':
+                    if (controls.isLocked) {
+                        controls.unlock();
+                    }
+                    break;
+                case 'e':
+                    openContentPanel();
+                    break;
+                case 'w':
+                    moveForward = true;
+                    break;
+                case 's':
+                    moveBackward = true;
+                    break;
+                case 'a':
+                    moveLeft = true;
+                    break;
+                case 'd':
+                    moveRight = true;
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'w':
+                    moveForward = false;
+                    break;
+                case 's':
+                    moveBackward = false;
+                    break;
+                case 'a':
+                    moveLeft = false;
+                    break;
+                case 'd':
+                    moveRight = false;
+                    break;
+            }
+        });
+    }
+    
+    // Window resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // Setup joystick on mobile
+    if (isMobile) {
+        setupJoystick();
+    }
+}
+
+// ========================================
+// ANIMATE - ENHANCED
+// ========================================
+let prevTime = performance.now();
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const time = performance.now();
+    const delta = (time - prevTime) * 0.001;
+    
+    // Animate grass with wind (more realistic)
+    grass.forEach((blade, index) => {
+        const windStrength = 0.15;
+        const windSpeed = 0.003;
+        blade.rotation.z = Math.sin(time * windSpeed + index * 0.1) * windStrength;
+        blade.rotation.x = Math.sin(time * windSpeed * 0.7 + index * 0.05) * windStrength * 0.5;
+    });
+    
+    // Animate flowers with wind
+    flowers.forEach((flower, index) => {
+        const windStrength = 0.1;
+        const windSpeed = 0.002;
+        flower.stem.rotation.x = Math.sin(time * windSpeed + index * 0.1) * windStrength;
+        flower.head.position.y = 0.85 + Math.sin(time * windSpeed * 1.5 + index * 0.2) * windStrength * 0.3;
+    });
+    
+    // Animate birds with wing flapping
+    birds.forEach(bird => {
+        bird.angle += bird.speed;
+        const x = bird.center.x + Math.cos(bird.angle) * bird.radius;
+        const z = bird.center.z + Math.sin(bird.angle) * bird.radius;
+        const y = bird.height + Math.sin(bird.angle * 2) * 3;
+        
+        bird.mesh.position.set(x, y, z);
+        bird.mesh.rotation.y = Math.PI + Math.cos(bird.angle * 0.5);
+        
+        // Wing flapping animation
+        bird.wingAngle += 0.2;
+        const wingFlap = Math.sin(bird.wingAngle) * 0.5;
+        bird.leftWing.rotation.z = -Math.PI / 4 + wingFlap;
+        bird.rightWing.rotation.z = Math.PI / 4 - wingFlap;
+    });
+    
+    // Animate clouds
+    clouds.forEach(cloud => {
+        cloud.mesh.position.x += Math.cos(cloud.direction) * cloud.speed;
+        cloud.mesh.position.z += Math.sin(cloud.direction) * cloud.speed;
+        
+        // Wrap clouds around
+        if (cloud.mesh.position.x > 300) cloud.mesh.position.x = -300;
+        if (cloud.mesh.position.x < -300) cloud.mesh.position.x = 300;
+        if (cloud.mesh.position.z > 300) cloud.mesh.position.z = -300;
+        if (cloud.mesh.position.z < -300) cloud.mesh.position.z = 300;
+    });
+    
+    // Player movement - TEZROQ
+    if ((controls.isLocked && !isMobile) || (isMobile && joystickActive)) {
+        velocity.x -= velocity.x * 10.0 * delta;
+        velocity.z -= velocity.z * 10.0 * delta;
+        
+        if (!isMobile) {
+            // Desktop controls
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+        } else {
+            // Mobile joystick controls
+            direction.z = -joystickData.y;
+            direction.x = joystickData.x;
+        }
+        
+        direction.normalize();
+        
+        if (Math.abs(direction.z) > 0.1 || Math.abs(direction.x) > 0.1) {
+            velocity.z -= direction.z * MOVE_SPEED * delta;  // TEZROQ
+            velocity.x -= direction.x * MOVE_SPEED * delta;  // TEZROQ
+            
+            controls.moveRight(-velocity.x * delta);
+            controls.moveForward(-velocity.z * delta);
+        }
+    }
+    
+    prevTime = time;
+    
+    renderer.render(scene, camera);
+}
+
+// ========================================
+// PRELOADER
+// ========================================
+window.addEventListener('load', () => {
+    const preloader = document.querySelector('.preloader');
+    const progress = document.querySelector('.loading-progress');
+    
+    let p = 0;
+    const interval = setInterval(() => {
+        p += 2;
+        progress.style.width = `${p}%`;
+        
+        if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                preloader.classList.add('hidden');
+                init();
+            }, 500);
+        }
+    }, 40);
+});
+
+console.log('🌲 Yosh Ekologlar - 3D O\'rmon Sayohati');
+console.log('🚗 Mashina animatsiyasi, 🏠 Haqiqiy uylar, 🎵 Ovoz effektlari!');
+console.log('📱 Mobil: Joystick + Tugma | 💻 Desktop: Sichqoncha + WASD + E');
     </script>
 </body>
 </html>
-
-
-
-
