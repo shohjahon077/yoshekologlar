@@ -1,1 +1,2492 @@
-1234567890-=
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yoshekologlar - Yosh Ekologlar Jamoasi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        /* ========================================
+           LOADING SCREEN - TO'G'RI ISHLEYDI
+        ======================================== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a190a 0%, #0d1a0d 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loading-content {
+            text-align: center;
+        }
+        .loading-logo {
+            font-size: 5rem;
+            color: #2ecc71;
+            animation: pulse 2s infinite;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(46, 204, 113, 0.7);
+        }
+        .loading-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 35px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: fadeIn 1s ease;
+        }
+        .loading-bar-container {
+            width: 300px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .loading-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #3498db, #f9ca24, #3498db, #2ecc71);
+            background-size: 300% 100%;
+            border-radius: 50px;
+            animation: loadingBar 3s ease-in-out infinite;
+            transition: width 0.5s ease;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes loadingBar {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ========================================
+           ROOT VARIABLES
+        ======================================== */
+        :root {
+            --primary-green: #2ecc71;
+            --secondary-green: #27ae60;
+            --dark-green: #1e8449;
+            --light-green: #a8e6cf;
+            --accent-yellow: #f9ca24;
+            --accent-blue: #3498db;
+            --dark-blue: #2980b9;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #6c757d;
+            --darker-gray: #343a40;
+            --white: #ffffff;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.25);
+            --shadow-glow: 0 0 30px rgba(46, 204, 113, 0.5);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 20px;
+            --border-radius-sm: 12px;
+            --border-radius-lg: 30px;
+            --gradient-primary: linear-gradient(135deg, #2ecc71, #3498db);
+            --gradient-secondary: linear-gradient(135deg, #f9ca24, #f39c12);
+            --gradient-dark: linear-gradient(135deg, #0a190a, #0d1a0d);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #f5f9f5 0%, #e8f5e9 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0a190a 0%, #0d1a0d 100%);
+            color: #e0e0e0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 1.2rem;
+            color: var(--darker-gray);
+        }
+
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, 
+        body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+            color: #ffffff;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 6px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+        }
+
+        .section-description {
+            text-align: center;
+            max-width: 850px;
+            margin: 30px auto 60px;
+            font-size: 1.3rem;
+            color: var(--dark-gray);
+            font-weight: 500;
+            line-height: 1.9;
+        }
+
+        body.dark-mode .section-description {
+            color: #bbb;
+        }
+
+        /* ========================================
+           HEADER STYLES - ZAMONAVIY
+        ======================================== */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, transparent, #2ecc71, transparent) 1;
+        }
+
+        body.dark-mode header {
+            background: rgba(10, 25, 10, 0.95);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        header.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-hover);
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, transparent, #2ecc71, #3498db, #2ecc71, transparent) 1;
+        }
+
+        body.dark-mode header.scrolled {
+            background: rgba(10, 25, 10, 0.98);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary-green);
+            text-decoration: none;
+            position: relative;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo span {
+            color: var(--darker-gray);
+        }
+
+        body.dark-mode .logo span {
+            color: #ffffff;
+        }
+
+        .logo-accent {
+            color: var(--accent-yellow);
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-accent::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-secondary);
+            border-radius: 3px;
+        }
+
+        /* ========================================
+           NAVIGATION - MOBIL UCHUN OPTIMALLASHTIRILGAN
+        ======================================== */
+        .nav-links {
+            display: flex;
+            list-style: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item {
+            margin: 0 8px;
+            text-decoration: none;
+            color: var(--darker-gray);
+            font-weight: 600;
+            font-size: 1.05rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: var(--transition);
+            position: relative;
+            padding: 12px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        body.dark-mode .nav-item {
+            color: #e0e0e0;
+        }
+
+        .nav-item i {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary-green);
+            transform: translateY(-3px);
+        }
+
+        body.dark-mode .nav-item:hover, body.dark-mode .nav-item.active {
+            color: #2ecc71;
+        }
+
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transition: var(--transition);
+            border-radius: 3px;
+        }
+
+        .nav-item:hover::after, .nav-item.active::after {
+            width: 90%;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--darker-gray);
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 2000;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        body.dark-mode .hamburger {
+            color: #ffffff;
+        }
+
+        .hamburger:hover {
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        /* ========================================
+           LANGUAGE & THEME SELECTOR
+        ======================================== */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .language-selector, .theme-toggle {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            padding: 5px;
+            display: flex;
+            box-shadow: var(--shadow);
+        }
+
+        body.dark-mode .language-selector, body.dark-mode .theme-toggle {
+            background: rgba(30, 50, 30, 0.9);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .lang-btn, .theme-btn {
+            background: none;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition);
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body.dark-mode .lang-btn, body.dark-mode .theme-btn {
+            color: #ccc;
+        }
+
+        .lang-btn.active, .lang-btn:hover, .theme-btn:hover {
+            background: var(--gradient-primary);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .theme-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* ========================================
+           HERO SECTION - ZAMONAVIY DIZAYN
+        ======================================== */
+        .hero {
+            background: linear-gradient(rgba(0, 25, 0, 0.9), rgba(0, 45, 0, 0.95)), 
+                        url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0, 35, 0, 0.9) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            max-width: 950px;
+            margin: 0 auto;
+            padding-top: 100px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 5.5rem;
+            margin-bottom: 25px;
+            text-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            color: var(--white);
+            background: linear-gradient(90deg, #ffffff, #a8e6cf, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textShine 3.5s ease-in-out infinite;
+        }
+
+        @keyframes textShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            font-size: 1.8rem;
+            margin-bottom: 60px;
+            text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.97);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: white;
+            padding: 20px 50px;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.25rem;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-8px) scale(1.07);
+            box-shadow: var(--shadow-hover), 0 0 40px rgba(46, 204, 113, 0.8);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border-color: var(--white);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--dark-green);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-accent {
+            background: var(--gradient-secondary);
+            box-shadow: 0 5px 20px rgba(249, 202, 36, 0.5);
+        }
+
+        .btn-accent:hover {
+            box-shadow: var(--shadow-hover), 0 0 40px rgba(249, 202, 36, 0.7);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-green);
+            color: white;
+            box-shadow: var(--shadow-hover), 0 0 35px rgba(46, 204, 113, 0.6);
+        }
+
+        /* ========================================
+           STATS SECTION
+        ======================================== */
+        .stats-section {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.25) 0%, transparent 70%);
+            z-index: 1;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .stat-item:hover::before {
+            transform: scale(1.1);
+        }
+
+        .stat-number {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: block;
+            background: linear-gradient(90deg, #ffffff, #a8e6cf, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* ========================================
+           ABOUT SECTION - GLASSMORPHISM
+        ======================================== */
+        .about-wrapper {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.05) 0%, rgba(52, 152, 219, 0.04) 100%);
+            border-radius: var(--border-radius-lg);
+            padding: 3px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px;
+        }
+
+        .about-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 80px;
+            padding: 70px;
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            position: relative;
+            z-index: 2;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        body.dark-mode .about-content {
+            background: rgba(20, 38, 20, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-text h2 {
+            font-size: 3rem;
+            margin-bottom: 40px;
+            color: var(--dark-green);
+            position: relative;
+            padding-bottom: 18px;
+        }
+
+        body.dark-mode .about-text h2 {
+            color: #2ecc71;
+        }
+
+        .about-text h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 75%;
+            height: 6px;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+        }
+
+        .about-text p {
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            line-height: 2.1;
+            color: var(--dark-gray);
+            position: relative;
+            padding-left: 30px;
+            transition: var(--transition);
+        }
+
+        .about-text p:hover {
+            transform: translateX(5px);
+        }
+
+        body.dark-mode .about-text p {
+            color: #ddd;
+        }
+
+        .about-text p::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            top: -3px;
+        }
+
+        .about-image {
+            flex: 1;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-hover);
+            height: 550px;
+            background: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80') center/cover no-repeat;
+            position: relative;
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .about-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(0, 30, 0, 0.7) 0%, transparent 60%);
+            transition: var(--transition);
+        }
+
+        .about-image::after {
+            content: 'Yosh Ekologlar';
+            position: absolute;
+            bottom: 35px;
+            left: 35px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .about-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.4);
+        }
+
+        .about-image:hover::before {
+            background: linear-gradient(0deg, rgba(0, 30, 0, 0.85) 0%, transparent 70%);
+        }
+
+        /* ========================================
+           MISSION SECTION - 3D CARDS
+        ======================================== */
+        .mission-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 50px;
+            margin-top: 80px;
+        }
+
+        .mission-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        body.dark-mode .mission-card {
+            background: rgba(30, 52, 30, 0.9);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(46, 204, 113, 0.08), transparent);
+            z-index: 0;
+            transition: var(--transition);
+        }
+
+        .mission-card:hover {
+            transform: translateY(-20px) scale(1.05) rotateX(5deg);
+            box-shadow: var(--shadow-hover), 0 0 45px rgba(46, 204, 113, 0.4);
+            border-color: rgba(46, 204, 113, 0.4);
+        }
+
+        .mission-card:hover::before {
+            background: linear-gradient(45deg, rgba(46, 204, 113, 0.2), transparent);
+        }
+
+        .mission-card i {
+            font-size: 4.5rem;
+            margin-bottom: 35px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .mission-card:hover i {
+            transform: scale(1.25) rotate(15deg);
+        }
+
+        .mission-card h3 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-green);
+            position: relative;
+            z-index: 1;
+        }
+
+        body.dark-mode .mission-card h3 {
+            color: #2ecc71;
+        }
+
+        .mission-card p {
+            color: var(--dark-gray);
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+            font-size: 1.15rem;
+            line-height: 2;
+        }
+
+        body.dark-mode .mission-card p {
+            color: #ccc;
+        }
+
+        /* ========================================
+           STAFF SECTION - MODERN GRID
+        ======================================== */
+        .staff-header {
+            text-align: center;
+            max-width: 850px;
+            margin: 0 auto 70px;
+        }
+
+        .info-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 45px;
+            margin-top: 35px;
+        }
+
+        .info-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        body.dark-mode .info-card {
+            background: rgba(30, 52, 30, 0.92);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.06), transparent);
+            z-index: 0;
+            transition: var(--transition);
+        }
+
+        .info-card:hover {
+            transform: translateY(-20px) rotateX(3deg) scale(1.03);
+            box-shadow: var(--shadow-hover), 0 0 50px rgba(46, 204, 113, 0.4);
+        }
+
+        .info-card:hover::before {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.18), transparent);
+        }
+
+        .info-card-img-container {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            margin: 40px auto 30px;
+            overflow: hidden;
+            border: 6px solid var(--light-green);
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            transition: var(--transition);
+        }
+
+        .info-card:hover .info-card-img-container {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(46, 204, 113, 0.6);
+            border-color: var(--primary-green);
+        }
+
+        .info-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .info-card h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--dark-green);
+            position: relative;
+            z-index: 1;
+            padding: 0 15px;
+        }
+
+        body.dark-mode .info-card h3 {
+            color: #2ecc71;
+        }
+
+        .info-card p {
+            color: var(--accent-blue);
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+            padding: 0 10px;
+        }
+
+        body.dark-mode .info-card p {
+            color: #3498db;
+        }
+
+        .info-card .role {
+            color: var(--dark-gray);
+            font-weight: 500;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+            padding: 0 15px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        body.dark-mode .info-card .role {
+            color: #aaa;
+        }
+
+        /* ========================================
+           PROJECTS SECTION
+        ======================================== */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 50px;
+            margin-top: 80px;
+        }
+
+        .project-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark-mode .project-card {
+            background: rgba(30, 52, 30, 0.9);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), transparent);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1;
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-card:hover {
+            transform: translateY(-20px) scale(1.04);
+            box-shadow: var(--shadow-hover), 0 0 55px rgba(0, 0, 0, 0.4);
+        }
+
+        .project-img {
+            height: 280px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-img::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 75%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        }
+
+        .project-content {
+            padding: 40px;
+            position: relative;
+            z-index: 2;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-content h3 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-green);
+            transition: var(--transition);
+        }
+
+        .project-card:hover .project-content h3 {
+            color: white;
+            transform: translateX(10px);
+        }
+
+        body.dark-mode .project-content h3 {
+            color: #2ecc71;
+        }
+
+        .project-content p {
+            margin-bottom: 30px;
+            color: var(--dark-gray);
+            line-height: 2;
+            transition: var(--transition);
+            flex-grow: 1;
+        }
+
+        .project-card:hover .project-content p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-mode .project-content p {
+            color: #ccc;
+        }
+
+        .project-content .btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            align-self: flex-start;
+            margin-top: 10px;
+        }
+
+        /* ========================================
+           CONTACT SECTION
+        ======================================== */
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 70px;
+            margin-top: 70px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            padding: 35px;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border-left: 6px solid var(--primary-green);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark-mode .contact-item {
+            background: rgba(30, 52, 30, 0.9);
+        }
+
+        .contact-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(46, 204, 113, 0.08), transparent);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 0;
+        }
+
+        .contact-item:hover {
+            transform: translateX(20px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .contact-item:hover::before {
+            opacity: 1;
+        }
+
+        .contact-item i {
+            font-size: 2.4rem;
+            color: var(--primary-green);
+            min-width: 50px;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        .contact-item:hover i {
+            transform: scale(1.35) rotate(20deg);
+            color: white;
+            text-shadow: 0 0 15px rgba(46, 204, 113, 0.8);
+        }
+
+        .contact-item h3 {
+            font-size: 1.7rem;
+            margin-bottom: 15px;
+            color: var(--dark-green);
+            position: relative;
+            z-index: 1;
+        }
+
+        body.dark-mode .contact-item h3 {
+            color: #2ecc71;
+        }
+
+        .contact-item p {
+            color: var(--dark-gray);
+            line-height: 2;
+            position: relative;
+            z-index: 1;
+            font-size: 1.1rem;
+        }
+
+        body.dark-mode .contact-item p {
+            color: #ddd;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background: var(--white);
+            padding: 60px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        body.dark-mode .contact-form {
+            background: rgba(30, 52, 30, 0.92);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            color: var(--darker-gray);
+            font-size: 1.2rem;
+            position: relative;
+            padding-left: 12px;
+        }
+
+        body.dark-mode .form-group label {
+            color: #e0e0e0;
+        }
+
+        .form-control {
+            padding: 20px 25px;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--border-radius-sm);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            background: transparent;
+            color: var(--darker-gray);
+        }
+
+        body.dark-mode .form-control {
+            border-color: #444;
+            color: #e0e0e0;
+            background: rgba(20, 38, 20, 0.5);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-green);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.25);
+        }
+
+        textarea.form-control {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        /* ========================================
+           FOOTER
+        ======================================== */
+        footer {
+            background: linear-gradient(135deg, #0a190a 0%, #0d1a0d 100%);
+            color: var(--white);
+            padding: 100px 0 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: var(--gradient-primary);
+        }
+
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 70px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-col h3 {
+            font-size: 2.3rem;
+            margin-bottom: 40px;
+            position: relative;
+            padding-bottom: 20px;
+            color: var(--white);
+        }
+
+        .footer-col h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 70px;
+            height: 6px;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+        }
+
+        .footer-col p {
+            margin: 25px 0;
+            color: #ccc;
+            font-size: 1.1rem;
+            line-height: 2;
+        }
+
+        .footer-links {
+            list-style: none;
+            margin-top: 35px;
+        }
+
+        .footer-links li {
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: var(--transition);
+            display: block;
+            font-size: 1.1rem;
+            padding: 12px 0;
+            position: relative;
+            padding-left: 35px;
+        }
+
+        .footer-links a::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: var(--primary-green);
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-green);
+            padding-left: 40px;
+        }
+
+        .footer-links a:hover::before {
+            transform: translateX(8px) rotate(25deg);
+        }
+
+        .footer-links i {
+            margin-right: 15px;
+            width: 25px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 25px;
+            margin-top: 35px;
+        }
+
+        .footer-social a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.6rem;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .footer-social a:hover {
+            background: var(--primary-green);
+            transform: translateY(-10px) scale(1.15);
+            box-shadow: 0 12px 35px rgba(46, 204, 113, 0.5);
+            border-color: white;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 50px;
+            margin-top: 50px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            color: #999;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* ========================================
+           CHATBOT BUTTON
+        ======================================== */
+        .chatbot-btn {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            box-shadow: var(--shadow-hover), 0 0 40px rgba(46, 204, 113, 0.8);
+            transition: var(--transition);
+            z-index: 2000;
+            text-decoration: none;
+            border: 4px solid white;
+            animation: bounce 2.2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(20deg); }
+        }
+
+        .chatbot-btn:hover {
+            transform: scale(1.25) rotate(40deg);
+            box-shadow: 0 15px 55px rgba(0, 0, 0, 0.4), 0 0 70px rgba(46, 204, 113, 0.9);
+        }
+
+        .chatbot-btn i {
+            animation: pulse 2s infinite;
+        }
+
+        /* ========================================
+           MOBIL UCHUN RESPONSIVE - PROFESSIONAL
+        ======================================== */
+        @media (max-width: 1200px) {
+            .hero h1 {
+                font-size: 4.8rem;
+            }
+            .hero p {
+                font-size: 1.65rem;
+            }
+            .about-content {
+                padding: 55px;
+            }
+            .about-image {
+                height: 500px;
+            }
+            .section-title {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hamburger {
+                display: block;
+            }
+            .nav-links {
+                position: fixed;
+                top: 100px;
+                right: -100%;
+                width: 90%;
+                height: calc(100vh - 100px);
+                background: rgba(255, 255, 255, 0.97);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                align-items: center;
+                padding-top: 70px;
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.25);
+                transition: var(--transition);
+                z-index: 999;
+                gap: 20px;
+                border-radius: 30px 0 0 30px;
+                border-left: 3px solid transparent;
+                border-image: linear-gradient(180deg, #2ecc71, #3498db, #2ecc71) 1;
+            }
+            body.dark-mode .nav-links {
+                background: rgba(12, 28, 12, 0.97);
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.4);
+            }
+            .nav-links.active {
+                right: 0;
+            }
+            .nav-item {
+                margin: 20px 0;
+                font-size: 1.65rem;
+                width: 100%;
+                text-align: center;
+                padding: 20px 0;
+                border-radius: 0;
+            }
+            .nav-item i {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+            .hero h1 {
+                font-size: 4.2rem;
+            }
+            .hero p {
+                font-size: 1.55rem;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 90%;
+                padding: 18px 35px;
+                font-size: 1.2rem;
+            }
+            section {
+                padding: 80px 0;
+            }
+            .header-controls {
+                gap: 12px;
+            }
+            .language-selector, .theme-toggle {
+                padding: 4px;
+            }
+            .lang-btn, .theme-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+            }
+            .about-content {
+                flex-direction: column;
+                padding: 50px 30px;
+            }
+            .about-text h2 {
+                font-size: 2.6rem;
+            }
+            .about-image {
+                width: 100%;
+                height: 450px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3.6rem;
+            }
+            .hero p {
+                font-size: 1.45rem;
+                margin-bottom: 50px;
+            }
+            .section-title {
+                font-size: 2.7rem;
+            }
+            .section-title::after {
+                width: 80px;
+                height: 5px;
+            }
+            .section-description {
+                font-size: 1.2rem;
+            }
+            .about-text h2 {
+                font-size: 2.4rem;
+            }
+            .about-text p {
+                font-size: 1.2rem;
+            }
+            .mission-cards {
+                grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            }
+            .stat-number {
+                font-size: 3.8rem;
+            }
+            .stat-label {
+                font-size: 1.3rem;
+            }
+            .projects-grid {
+                grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            }
+            .project-card {
+                height: auto;
+            }
+            .project-img {
+                height: 240px;
+            }
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+            .contact-form {
+                padding: 50px 30px;
+            }
+            footer {
+                padding: 80px 0 50px;
+            }
+            .footer-container {
+                gap: 50px;
+            }
+            .chatbot-btn {
+                width: 75px;
+                height: 75px;
+                bottom: 40px;
+                right: 40px;
+            }
+            .chatbot-btn i {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .loading-logo {
+                font-size: 3.8rem;
+            }
+            .loading-text {
+                font-size: 1.6rem;
+            }
+            .loading-bar-container {
+                width: 250px;
+                height: 10px;
+            }
+            .hero h1 {
+                font-size: 3rem;
+            }
+            .hero p {
+                font-size: 1.35rem;
+                margin-bottom: 45px;
+            }
+            .hero-buttons {
+                gap: 20px;
+            }
+            .btn {
+                padding: 16px 40px;
+                font-size: 1.15rem;
+            }
+            .section-title {
+                font-size: 2.4rem;
+            }
+            .section-description {
+                font-size: 1.15rem;
+            }
+            .about-text h2 {
+                font-size: 2.2rem;
+            }
+            .about-text p {
+                font-size: 1.15rem;
+            }
+            .mission-card {
+                padding: 45px 30px;
+            }
+            .mission-card i {
+                font-size: 3.8rem;
+            }
+            .mission-card h3 {
+                font-size: 2rem;
+            }
+            .stat-number {
+                font-size: 3.4rem;
+            }
+            .stat-label {
+                font-size: 1.25rem;
+            }
+            .info-card-img-container {
+                width: 150px;
+                height: 150px;
+                margin: 32px auto 25px;
+            }
+            .info-card h3 {
+                font-size: 1.8rem;
+            }
+            .copyright {
+                font-size: 1rem;
+                padding-top: 40px;
+                margin-top: 40px;
+            }
+            .chatbot-btn {
+                width: 65px;
+                height: 65px;
+                bottom: 30px;
+                right: 30px;
+            }
+            .chatbot-btn i {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+           LOADING SCREEN - TO'G'RI ISHLEYDI
+    ======================================== -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="loading-text">yoshekologlar</div>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+           HEADER
+    ======================================== -->
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-leaf"></i>
+                yosh<span class="logo-accent">ekologlar</span>
+            </a>
+            <button class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <a href="#hero" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span class="i18n" data-key="nav_home">Bosh sahifa</span>
+                </a>
+                <a href="#about" class="nav-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="i18n" data-key="nav_about">Biz haqimizda</span>
+                </a>
+                <a href="#mission" class="nav-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span class="i18n" data-key="nav_mission">Yo'nalishlar</span>
+                </a>
+                <a href="#staff" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span class="i18n" data-key="nav_staff">Jamoa</span>
+                </a>
+                <a href="#projects" class="nav-item">
+                    <i class="fas fa-seedling"></i>
+                    <span class="i18n" data-key="nav_projects">Loyihalar</span>
+                </a>
+                <a href="#contact" class="nav-item">
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="i18n" data-key="nav_contact">Aloqa</span>
+                </a>
+                <div class="header-controls">
+                    <div class="language-selector">
+                        <button class="lang-btn active" data-lang="uz">UZ</button>
+                        <button class="lang-btn" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="ru">RU</button>
+                    </div>
+                    <button class="theme-btn" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </ul>
+        </div>
+    </header>
+
+    <!-- ========================================
+           HERO SECTION
+    ======================================== -->
+    <section class="hero" id="hero">
+        <div class="container hero-content">
+            <h1 class="i18n" data-key="hero_title">Yosh Ekologlar Jamoasi</h1>
+            <p class="i18n" data-key="hero_subtitle">Kelajakni yashil va toza qilish uchun birgalikda harakat qilamiz</p>
+            <div class="hero-buttons">
+                <a href="#projects" class="btn btn-accent i18n" data-key="hero_btn_explore">Loyihalarni ko'rish</a>
+                <a href="#contact" class="btn btn-secondary i18n" data-key="hero_btn_contact">Biz bilan bog'lanish</a>
+                <a href="#about" class="btn btn-outline i18n" data-key="hero_btn_learn">Jamoa haqida</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           STATS SECTION
+    ======================================== -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-container">
+                <div class="stat-item" data-aos="fade-up">
+                    <span class="stat-number" id="projectsCount">0</span>
+                    <span class="stat-label i18n" data-key="stat_projects">Loyihalar</span>
+                </div>
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="150">
+                    <span class="stat-number" id="membersCount">0</span>
+                    <span class="stat-label i18n" data-key="stat_members">Jamoa a'zolari</span>
+                </div>
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
+                    <span class="stat-number" id="treesCount">0</span>
+                    <span class="stat-label i18n" data-key="stat_trees">Ekilgan daraxtlar</span>
+                </div>
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="450">
+                    <span class="stat-number" id="activitiesCount">0</span>
+                    <span class="stat-label i18n" data-key="stat_activities">Tadbirlar</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           ABOUT SECTION
+    ======================================== -->
+    <section class="section-wrapper" id="about">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="about_title">Biz haqimizda</h2>
+            <p class="section-description i18n" data-key="about_description">yoshekologlar - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan yoshlar jamoasi.</p>
+            <div class="about-wrapper">
+                <div class="about-content">
+                    <div class="about-text">
+                        <h2 class="i18n" data-key="about_subtitle">Kimiz va nimani qilamiz</h2>
+                        <p class="i18n" data-key="about_text1">"Yashil makon" loyihalari: Bo'sh hududlarga ko'chatlar ekish va ularni parvarish qilish.</p>
+                        <p class="i18n" data-key="about_text2">Insonlarni o'zi yashab turgan hududini asrash va uni yashil zona qilishni singdirish.</p>
+                        <p class="i18n" data-key="about_text3">Ijtimoiy tozalash ishlari: Daryo bo'ylari, bog'lar va tog'li hududlarni chiqindilardan tozalash.</p>
+                        <a href="#contact" class="btn i18n" data-key="about_btn">Hamkorlik qilish</a>
+                    </div>
+                    <div class="about-image"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           MISSION SECTION
+    ======================================== -->
+    <section class="section-wrapper" id="mission" style="background-color: #f8fdf8;">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="mission_title">Bizning Yo'nalishlar</h2>
+            <p class="section-description i18n" data-key="mission_description">Yosh ekologlar sifatida quyidagi yo'nalishlarda faol ish olib boramiz:</p>
+            <div class="mission-cards">
+                <div class="mission-card" data-aos="fade-up">
+                    <i class="fas fa-tree"></i>
+                    <h3 class="i18n" data-key="mission_card1_title">Yashil maydonlar</h3>
+                    <p class="i18n" data-key="mission_card1_text">Shahar va qishloq hududlarini ko'kalamzorlashtirish va yangi bog'lar yaratish.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="150">
+                    <i class="fas fa-tint"></i>
+                    <h3 class="i18n" data-key="mission_card2_title">Toza suv</h3>
+                    <p class="i18n" data-key="mission_card2_text">Suv manbalarini tozalash va suvdan oqilona foydalanishni o'rgatish.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-wind"></i>
+                    <h3 class="i18n" data-key="mission_card3_title">Tasarruf</h3>
+                    <p class="i18n" data-key="mission_card3_text">Energiya va resurslarni tejash, qayta ishlashni targ'ib qilish.</p>
+                </div>
+                <div class="mission-card" data-aos="fade-up" data-aos-delay="450">
+                    <i class="fas fa-recycle"></i>
+                    <h3 class="i18n" data-key="mission_card4_title">Ekotarbiya</h3>
+                    <p class="i18n" data-key="mission_card4_text">Maktab o'quvchilari va kattalar orasida ekologik madaniyatni rivojlantirish.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           STAFF SECTION
+    ======================================== -->
+    <section class="section-wrapper" id="staff">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="staff_title">Bizning Jamoa</h2>
+            <div class="staff-header">
+                <p class="section-description i18n" data-key="staff_description">Kelajakni yashil qilish uchun birgalikda kurashayotgan iqtidorli yoshlar.</p>
+            </div>
+            <div class="info-cards-grid">
+                <!-- Staff Member 1 -->
+                <div class="info-card" data-aos="fade-up">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Ibragimova Charos">
+                    </div>
+                    <h3>Ibragimova Charos</h3>
+                    <p>Ekolog</p>
+                    <span class="role">14 yosh</span>
+                </div>
+                <!-- Staff Member 2 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Shohjahon Mahkamov">
+                    </div>
+                    <h3>Shohjahon Mahkamov</h3>
+                    <p>Dasturlash bo'yicha mentor</p>
+                    <span class="role">17 yosh</span>
+                </div>
+                <!-- Staff Member 3 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Qodirova Dilnoza">
+                    </div>
+                    <h3>Qodirova Dilnoza</h3>
+                    <p>Jamoa yetakchisi</p>
+                    <span class="role">Loyiha rahbari</span>
+                </div>
+                <!-- Staff Member 4 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Sobirova Nozimabonu">
+                    </div>
+                    <h3>Sobirova Nozimabonu</h3>
+                    <p>Tadqiqotchi</p>
+                    <span class="role">14 yosh</span>
+                </div>
+                <!-- Staff Member 5 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1586193298110-c538a4c8a739?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Aliyeva Rayxona">
+                    </div>
+                    <h3>Aliyeva Rayxona</h3>
+                    <p>Ekopedagog</p>
+                    <span class="role">Ta'lim maslahatchisi</span>
+                </div>
+                <!-- Staff Member 6 -->
+                <div class="info-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="info-card-img-container">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Shaxzod Rustamov">
+                    </div>
+                    <h3>Shaxzod Rustamov</h3>
+                    <p>Ijtimoiy faol</p>
+                    <span class="role">17 yosh</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           PROJECTS SECTION
+    ======================================== -->
+    <section class="section-wrapper" id="projects">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="projects_title">Bizning Loyihalar</h2>
+            <p class="section-description i18n" data-key="projects_description">Mintaqamiz bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.</p>
+            <div class="projects-grid">
+                <div class="project-card" data-aos="fade-up">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1468817811610-5ce16c7e8b9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project1_title">Maktab atrofini yashillantirish</h3>
+                        <p class="i18n" data-key="project1_text">38-maktab atrofidagi hududlarni ko'chatlar ekish va bog'lar yaratish orqali yashillantirish.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn">Batafsil</a>
+                    </div>
+                </div>
+                <div class="project-card" data-aos="fade-up" data-aos-delay="150">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1474861644511-0f2775ae97cc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project2_title">Quyosh energiyasi bilan ta'minlash</h3>
+                        <p class="i18n" data-key="project2_text">Maktab binosiga quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn">Batafsil</a>
+                    </div>
+                </div>
+                <div class="project-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="project-img" style="background-image: url('https://images.unsplash.com/photo-1454117096504-6a8691923683?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80')"></div>
+                    <div class="project-content">
+                        <h3 class="i18n" data-key="project3_title">Suv manbalarini tozalash</h3>
+                        <p class="i18n" data-key="project3_text">Mahalliy daryo va ko'llarni chiqindilardan tozalash va suvni qayta ishlash loyihasi.</p>
+                        <a href="#" class="btn i18n" data-key="project_btn">Batafsil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           CONTACT SECTION
+    ======================================== -->
+    <section class="section-wrapper" id="contact">
+        <div class="container">
+            <h2 class="section-title i18n" data-key="contact_title">Biz bilan bog'laning</h2>
+            <p class="section-description i18n" data-key="contact_description">Takliflaringiz yoki savollaringiz bo'lsa, quyidagi formani to'ldiring.</p>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_address_title">Manzil</h3>
+                            <p class="i18n" data-key="contact_address">Samarqand shahri, Oqdaryo tumani, 38-maktab</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_phone_title">Telefon</h3>
+                            <p class="i18n" data-key="contact_phone">+998 91 703 13 34</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_email_title">Email</h3>
+                            <p class="i18n" data-key="contact_email">info@shoakem07.uz</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h3 class="i18n" data-key="contact_hours_title">Ish soatlari</h3>
+                            <p class="i18n" data-key="contact_hours">Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 14:00</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <div class="form-group">
+                        <label for="name" class="i18n" data-key="contact_form_name">Ismingiz</label>
+                        <input type="text" id="name" class="form-control" placeholder="Ismingizni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="i18n" data-key="contact_form_email">Email manzilingiz</label>
+                        <input type="email" id="email" class="form-control" placeholder="Email manzilingizni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="subject" class="i18n" data-key="contact_form_subject">Mavzu</label>
+                        <input type="text" id="subject" class="form-control" placeholder="Mavzuni kiriting">
+                    </div>
+                    <div class="form-group">
+                        <label for="message" class="i18n" data-key="contact_form_message">Xabar</label>
+                        <textarea id="message" class="form-control" placeholder="Xabaringizni kiriting"></textarea>
+                    </div>
+                    <button class="btn i18n" data-key="contact_form_send">Xabarni yuborish</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================
+           FOOTER
+    ======================================== -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-col">
+                    <h3>yoshekologlar</h3>
+                    <p class="i18n" data-key="footer_about">Yoshlar kuchi bilan tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaymiz.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3 class="i18n" data-key="footer_links_title">Sahifalar</h3>
+                    <ul class="footer-links">
+                        <li><a href="#about"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_about">Biz haqimizda</span></a></li>
+                        <li><a href="#mission"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_mission">Yo'nalishlar</span></a></li>
+                        <li><a href="#staff"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_staff">Jamoa</span></a></li>
+                        <li><a href="#projects"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_projects">Loyihalar</span></a></li>
+                        <li><a href="#contact"><i class="fas fa-chevron-right"></i> <span class="i18n" data-key="nav_contact">Aloqa</span></a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="i18n" data-key="footer_newsletter_title">Yangiliklar</h3>
+                    <p class="i18n" data-key="footer_newsletter_text">Loyihalarimiz haqida xabardor bo'lish uchun obuna bo'ling.</p>
+                    <div style="margin-top: 30px; display: flex; gap: 5px;">
+                        <input type="email" placeholder="Email manzilingiz" style="padding: 15px; border-radius: 8px 0 0 8px; border: none; width: 70%; background: rgba(255, 255, 255, 0.15); color: white; font-family: 'Poppins', sans-serif;">
+                        <button style="background: var(--primary-green); color: white; border: none; padding: 0 22px; border-radius: 0 8px 8px 0; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 yoshekologlar | <span class="i18n" data-key="footer_copyright">Yaratuvchi: Yosh ekologlar jamoasi</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================
+           CHATBOT BUTTON
+    ======================================== -->
+    <a href="ymthubai.html" class="chatbot-btn" title="EKO_YORDAMCHI" aria-label="EKO Yordamchi">
+        <i class="fas fa-robot"></i>
+    </a>
+
+    <!-- ========================================
+           JAVASCRIPT
+    ======================================== -->
+    <script>
+        // ========================================
+        // LOADING SCREEN - TO'G'RI ISHLEYDI
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const loadingProgress = document.getElementById('loadingProgress');
+            
+            // Progressni 0 dan 100 gacha oshirish
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 8;
+                if (progress > 95) progress = 95;
+                loadingProgress.style.width = progress + '%';
+                
+                // Loading tugaganda ekranni yopish
+                if (progress > 95) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingProgress.style.width = '100%';
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                            }, 600);
+                        }, 300);
+                    }, 400);
+                }
+            }, 100);
+
+            // ========================================
+            // AOS ANIMATSIYALARNI ISHGA TUSHIRISH
+            // ========================================
+            AOS.init({
+                duration: 1000,
+                easing: 'ease-in-out',
+                once: true,
+                offset: 120
+            });
+
+            // ========================================
+            // MOBIL NAVIGATSIYA
+            // ========================================
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+            
+            hamburger.addEventListener('click', () => {
+                navLinks.classList.toggle('active');
+                hamburger.innerHTML = navLinks.classList.contains('active')
+                    ? '<i class="fas fa-times"></i>'
+                    : '<i class="fas fa-bars"></i>';
+            });
+
+            // Link bosilganda menyuni yopish
+            document.querySelectorAll('.nav-item').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('active');
+                    hamburger.innerHTML = '<i class="fas fa-bars"></i>';
+                });
+            });
+
+            // ========================================
+            // HEADER SCROLL EFFECT
+            // ========================================
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+
+            // ========================================
+            // COUNTER ANIMATSIYALARI
+            // ========================================
+            function animateCounter(element, target, duration) {
+                let start = 0;
+                const increment = target / (duration / 16);
+                
+                const timer = setInterval(() => {
+                    start += increment;
+                    if (start >= target) {
+                        element.textContent = target.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(start).toLocaleString();
+                    }
+                }, 16);
+            }
+
+            // Counterlarni ko'rishda animatsiya qilish
+            const counters = [
+                { el: document.getElementById('projectsCount'), target: 28 },
+                { el: document.getElementById('membersCount'), target: 22 },
+                { el: document.getElementById('treesCount'), target: 4200 },
+                { el: document.getElementById('activitiesCount'), target: 56 }
+            ];
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const counter = counters.find(c => c.el === entry.target);
+                        if (counter) {
+                            animateCounter(counter.el, counter.target, 2500);
+                        }
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            counters.forEach(counter => {
+                if (counter.el) observer.observe(counter.el);
+            });
+
+            // ========================================
+            // THEME TOGGLE (DARK MODE)
+            // ========================================
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = themeToggle.querySelector('i');
+            
+            // Saqlangan temani tekshirish
+            if (localStorage.getItem('darkMode') === 'true' || 
+                (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode);
+                
+                if (isDarkMode) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            });
+
+            // ========================================
+            // TILNI O'ZGARTIRISH - TO'G'RI TARJIMALAR
+            // ========================================
+            const translations = {
+                uz: {
+                    nav_home: "Bosh sahifa",
+                    nav_about: "Biz haqimizda",
+                    nav_mission: "Yo'nalishlar",
+                    nav_staff: "Jamoa",
+                    nav_projects: "Loyihalar",
+                    nav_contact: "Aloqa",
+                    hero_title: "Yosh Ekologlar Jamoasi",
+                    hero_subtitle: "Kelajakni yashil va toza qilish uchun birgalikda harakat qilamiz",
+                    hero_btn_explore: "Loyihalarni ko'rish",
+                    hero_btn_contact: "Biz bilan bog'lanish",
+                    hero_btn_learn: "Jamoa haqida",
+                    stat_projects: "Loyihalar",
+                    stat_members: "Jamoa a'zolari",
+                    stat_trees: "Ekilgan daraxtlar",
+                    stat_activities: "Tadbirlar",
+                    about_title: "Biz haqimizda",
+                    about_description: "yoshekologlar - tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaydigan yoshlar jamoasi.",
+                    about_subtitle: "Kimiz va nimani qilamiz",
+                    about_text1: "\"Yashil makon\" loyihalari: Bo'sh hududlarga ko'chatlar ekish va ularni parvarish qilish.",
+                    about_text2: "Insonlarni o'zi yashab turgan hududini asrash va uni yashil zona qilishni singdirish.",
+                    about_text3: "Ijtimoiy tozalash ishlari: Daryo bo'ylari, bog'lar va tog'li hududlarni chiqindilardan tozalash.",
+                    about_btn: "Hamkorlik qilish",
+                    mission_title: "Bizning Yo'nalishlar",
+                    mission_description: "Yosh ekologlar sifatida quyidagi yo'nalishlarda faol ish olib boramiz:",
+                    mission_card1_title: "Yashil maydonlar",
+                    mission_card1_text: "Shahar va qishloq hududlarini ko'kalamzorlashtirish va yangi bog'lar yaratish.",
+                    mission_card2_title: "Toza suv",
+                    mission_card2_text: "Suv manbalarini tozalash va suvdan oqilona foydalanishni o'rgatish.",
+                    mission_card3_title: "Tasarruf",
+                    mission_card3_text: "Energiya va resurslarni tejash, qayta ishlashni targ'ib qilish.",
+                    mission_card4_title: "Ekotarbiya",
+                    mission_card4_text: "Maktab o'quvchilari va kattalar orasida ekologik madaniyatni rivojlantirish.",
+                    staff_title: "Bizning Jamoa",
+                    staff_description: "Kelajakni yashil qilish uchun birgalikda kurashayotgan iqtidorli yoshlar.",
+                    projects_title: "Bizning Loyihalar",
+                    projects_description: "Mintaqamiz bo'yicha amalga oshirilayotgan ekologik loyihalarimiz bilan tanishing.",
+                    project1_title: "Maktab atrofini yashillantirish",
+                    project1_text: "38-maktab atrofidagi hududlarni ko'chatlar ekish va bog'lar yaratish orqali yashillantirish.",
+                    project2_title: "Quyosh energiyasi bilan ta'minlash",
+                    project2_text: "Maktab binosiga quyosh panellari o'rnatish orqali toza energiya ishlab chiqarish.",
+                    project3_title: "Suv manbalarini tozalash",
+                    project3_text: "Mahalliy daryo va ko'llarni chiqindilardan tozalash va suvni qayta ishlash loyihasi.",
+                    project_btn: "Batafsil",
+                    contact_title: "Biz bilan bog'laning",
+                    contact_description: "Takliflaringiz yoki savollaringiz bo'lsa, quyidagi formani to'ldiring.",
+                    contact_address_title: "Manzil",
+                    contact_address: "Samarqand shahri, Oqdaryo tumani, 38-maktab",
+                    contact_phone_title: "Telefon",
+                    contact_phone: "+998 91 703 13 34",
+                    contact_email_title: "Email",
+                    contact_email: "info@shoakem07.uz",
+                    contact_hours_title: "Ish soatlari",
+                    contact_hours: "Dushanba-Juma: 9:00 - 18:00<br>Shanba: 10:00 - 14:00",
+                    contact_form_name: "Ismingiz",
+                    contact_form_email: "Email manzilingiz",
+                    contact_form_subject: "Mavzu",
+                    contact_form_message: "Xabar",
+                    contact_form_send: "Xabarni yuborish",
+                    footer_about: "Yoshlar kuchi bilan tabiatni muhofaza qilish va barqaror rivojlanishni qo'llab-quvvatlaymiz.",
+                    footer_links_title: "Sahifalar",
+                    footer_newsletter_title: "Yangiliklar",
+                    footer_newsletter_text: "Loyihalarimiz haqida xabardor bo'lish uchun obuna bo'ling.",
+                    footer_copyright: "Yaratuvchi: Yosh ekologlar jamoasi"
+                },
+                en: {
+                    nav_home: "Home",
+                    nav_about: "About Us",
+                    nav_mission: "Directions",
+                    nav_staff: "Team",
+                    nav_projects: "Projects",
+                    nav_contact: "Contact",
+                    hero_title: "Young Ecologists Team",
+                    hero_subtitle: "Together we act to make the future green and clean",
+                    hero_btn_explore: "View Projects",
+                    hero_btn_contact: "Contact Us",
+                    hero_btn_learn: "About Team",
+                    stat_projects: "Projects",
+                    stat_members: "Team Members",
+                    stat_trees: "Trees Planted",
+                    stat_activities: "Events",
+                    about_title: "About Us",
+                    about_description: "yoshekologlar is a youth team supporting environmental protection and sustainable development.",
+                    about_subtitle: "Who we are and what we do",
+                    about_text1: "\"Green Space\" projects: Planting saplings in vacant areas and caring for them.",
+                    about_text2: "We instill in people the importance of preserving their living areas and turning them into green zones.",
+                    about_text3: "Community clean-ups: Cleaning riverbanks, parks, and mountainous areas from garbage.",
+                    about_btn: "Collaborate",
+                    mission_title: "Our Directions",
+                    mission_description: "As young ecologists, we are actively working in the following areas:",
+                    mission_card1_title: "Green Areas",
+                    mission_card1_text: "Greening urban and rural areas and creating new parks.",
+                    mission_card2_title: "Clean Water",
+                    mission_card2_text: "Cleaning water sources and teaching rational water use.",
+                    mission_card3_title: "Conservation",
+                    mission_card3_text: "Promoting energy and resource conservation and recycling.",
+                    mission_card4_title: "Eco-Education",
+                    mission_card4_text: "Developing ecological culture among schoolchildren and adults.",
+                    staff_title: "Our Team",
+                    staff_description: "Talented young people fighting together to make the future green.",
+                    projects_title: "Our Projects",
+                    projects_description: "Get acquainted with our ecological projects implemented in our region.",
+                    project1_title: "Greening School Area",
+                    project1_text: "Greening the areas around School 38 by planting saplings and creating gardens.",
+                    project2_title: "Solar Energy Supply",
+                    project2_text: "Generating clean energy by installing solar panels on the school building.",
+                    project3_title: "Cleaning Water Sources",
+                    project3_text: "Cleaning local rivers and lakes from garbage and water recycling project.",
+                    project_btn: "Details",
+                    contact_title: "Contact Us",
+                    contact_description: "If you have suggestions or questions, please fill out the form below.",
+                    contact_address_title: "Address",
+                    contact_address: "School 38, Oqdaryo district, Samarkand city",
+                    contact_phone_title: "Phone",
+                    contact_phone: "+998 91 703 13 34",
+                    contact_email_title: "Email",
+                    contact_email: "info@shoakem07.uz",
+                    contact_hours_title: "Working Hours",
+                    contact_hours: "Mon-Fri: 9:00 - 18:00<br>Sat: 10:00 - 14:00",
+                    contact_form_name: "Your Name",
+                    contact_form_email: "Your Email",
+                    contact_form_subject: "Subject",
+                    contact_form_message: "Message",
+                    contact_form_send: "Send Message",
+                    footer_about: "We support environmental protection and sustainable development with the power of youth.",
+                    footer_links_title: "Pages",
+                    footer_newsletter_title: "Newsletter",
+                    footer_newsletter_text: "Subscribe to stay updated about our projects.",
+                    footer_copyright: "Creator: Young ecologists team"
+                },
+                ru: {
+                    nav_home: "Главная",
+                    nav_about: "О нас",
+                    nav_mission: "Направления",
+                    nav_staff: "Команда",
+                    nav_projects: "Проекты",
+                    nav_contact: "Контакты",
+                    hero_title: "Команда молодых экологов",
+                    hero_subtitle: "Вместе мы действуем, чтобы сделать будущее зеленым и чистым",
+                    hero_btn_explore: "Посмотреть проекты",
+                    hero_btn_contact: "Связаться с нами",
+                    hero_btn_learn: "О команде",
+                    stat_projects: "Проекты",
+                    stat_members: "Члены команды",
+                    stat_trees: "Посаженные деревья",
+                    stat_activities: "Мероприятия",
+                    about_title: "О нас",
+                    about_description: "yoshekologlar - молодежная команда, поддерживающая охрану окружающей среды и устойчивое развитие.",
+                    about_subtitle: "Кто мы и чем занимаемся",
+                    about_text1: "Проекты «Зеленое пространство»: Посадка саженцев на пустующих территориях и уход за ними.",
+                    about_text2: "Мы прививаем людям важность сохранения мест, где они живут, и превращения их в зеленые зоны.",
+                    about_text3: "Общественные уборки: Очистка берегов рек, парков и горных районов от мусора.",
+                    about_btn: "Сотрудничать",
+                    mission_title: "Наши направления",
+                    mission_description: "Как молодые экологи, мы активно работаем в следующих направлениях:",
+                    mission_card1_title: "Зеленые зоны",
+                    mission_card1_text: "Озеленение городских и сельских территорий и создание новых парков.",
+                    mission_card2_title: "Чистая вода",
+                    mission_card2_text: "Очистка источников воды и обучение рациональному использованию воды.",
+                    mission_card3_title: "Сохранение",
+                    mission_card3_text: "Пропаганда экономии энергии и ресурсов, переработка отходов.",
+                    mission_card4_title: "Эко-просвещение",
+                    mission_card4_text: "Развитие экологической культуры среди школьников и взрослых.",
+                    staff_title: "Наша команда",
+                    staff_description: "Талантливая молодежь, вместе борющаяся за зеленое будущее.",
+                    projects_title: "Наши проекты",
+                    projects_description: "Ознакомьтесь с нашими экологическими проектами, реализуемыми в нашем регионе.",
+                    project1_title: "Озеленение школьной территории",
+                    project1_text: "Озеленение территорий вокруг школы №38 путем посадки саженцев и создания садов.",
+                    project2_title: "Солнечная энергия",
+                    project2_text: "Производство чистой энергии путем установки солнечных панелей на здании школы.",
+                    project3_title: "Очистка источников воды",
+                    project3_text: "Очистка местных рек и озер от мусора и проект переработки воды.",
+                    project_btn: "Подробнее",
+                    contact_title: "Свяжитесь с нами",
+                    contact_description: "Если у вас есть предложения или вопросы, пожалуйста, заполните форму ниже.",
+                    contact_address_title: "Адрес",
+                    contact_address: "Школа 38, Окдарё район, город Самарканд",
+                    contact_phone_title: "Телефон",
+                    contact_phone: "+998 91 703 13 34",
+                    contact_email_title: "Email",
+                    contact_email: "info@shoakem07.uz",
+                    contact_hours_title: "Рабочие часы",
+                    contact_hours: "Пн-Пт: 9:00 - 18:00<br>Сб: 10:00 - 14:00",
+                    contact_form_name: "Ваше имя",
+                    contact_form_email: "Ваш email",
+                    contact_form_subject: "Тема",
+                    contact_form_message: "Сообщение",
+                    contact_form_send: "Отправить сообщение",
+                    footer_about: "Мы поддерживаем охрану окружающей среды и устойчивое развитие силой молодежи.",
+                    footer_links_title: "Страницы",
+                    footer_newsletter_title: "Новостная рассылка",
+                    footer_newsletter_text: "Подпишитесь, чтобы быть в курсе наших проектов.",
+                    footer_copyright: "Создатель: Команда молодых экологов"
+                }
+            };
+
+            // Tilni tanlash
+            let currentLang = localStorage.getItem('language') || 'uz';
+            
+            document.querySelectorAll('.lang-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentLang = button.getAttribute('data-lang');
+                    localStorage.setItem('language', currentLang);
+                    applyLanguage(currentLang);
+                });
+                if (button.getAttribute('data-lang') === currentLang) {
+                    button.classList.add('active');
+                }
+            });
+
+            // Tilni qo'llash funksiyasi
+            function applyLanguage(lang) {
+                document.querySelectorAll('[data-key]').forEach(element => {
+                    const key = element.getAttribute('data-key');
+                    if (translations[lang] && translations[lang][key]) {
+                        if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                            element.placeholder = translations[lang][key];
+                        } else if (element.innerHTML.includes('<br>')) {
+                            element.innerHTML = translations[lang][key];
+                        } else {
+                            element.textContent = translations[lang][key];
+                        }
+                    }
+                });
+                
+                // Sahifa sarlavhasini yangilash
+                document.title = lang === 'uz' ? 'yoshekologlar - Yosh Ekologlar Jamoasi' :
+                               lang === 'en' ? 'yoshekologlar - Young Ecologists Team' :
+                               'yoshekologlar - Команда молодых экологов';
+            }
+
+            // Saqlangan til bilan boshlash
+            applyLanguage(currentLang);
+
+            // ========================================
+            // FORM YUBORISH
+            // ========================================
+            const contactFormBtn = document.querySelector('.contact-form .btn');
+            if (contactFormBtn) {
+                contactFormBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('name').value.trim();
+                    const message = currentLang === 'uz' ? (name ? `Hurmatli ${name}, xabaringiz yuborildi!` : 'Xabaringiz yuborildi!') :
+                                   currentLang === 'en' ? (name ? `Dear ${name}, your message has been sent!` : 'Your message has been sent!') :
+                                   (name ? `Уважаемый(ая) ${name}, ваше сообщение отправлено!` : 'Ваше сообщение отправлено!');
+                    
+                    alert(message);
+                    
+                    // Formani tozalash
+                    document.getElementById('name').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('subject').value = '';
+                    document.getElementById('message').value = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
